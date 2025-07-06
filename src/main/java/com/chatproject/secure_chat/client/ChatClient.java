@@ -1,14 +1,14 @@
 package com.chatproject.secure_chat.client;
 
-import java.io.PrintWriter;
-import java.io.OutputStream;
-import java.io.IOException;
+import java.io.BufferedReader; //네트워크 통신시에 scanner 보다 빠르고 좋음
+import java.io.InputStreamReader;
+import java.io.PrintWriter; //서버에 전송할때 필요
+
 import java.net.Socket;
-import java.util.Scanner;
+
 
 public class ChatClient {
     public static void main(String[] args) {
-        Scanner in = new Scanner(System.in); //입력 객체 생성
         Socket clientSocket = null; //소켓 객체 생성
 
         try { //예외처리
@@ -18,11 +18,20 @@ public class ChatClient {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        String message = in.nextLine();
+
         if (clientSocket != null) { //null값 아닐때 실행
             try {
-                PrintWriter writer = new PrintWriter(clientSocket.getOutputStream(), true);
-                writer.println(message);
+                    BufferedReader br = new BufferedReader(new InputStreamReader(System.in)); //bufferedreader로 입력받기
+                    PrintWriter printwriter = new PrintWriter(clientSocket.getOutputStream(), true); //서버에 전송
+                while (true){
+                    String message = br.readLine();
+                    printwriter.println(message);
+                    if(message.equals("종료")) break;
+                }
+                printwriter.close();
+                br.close();
+                clientSocket.close();
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
