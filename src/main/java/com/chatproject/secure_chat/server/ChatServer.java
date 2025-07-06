@@ -7,7 +7,7 @@ import java.io.BufferedWriter;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-
+import java.io.PrintWriter;
 
 public class ChatServer {
     public static void main(String[] args) {
@@ -20,11 +20,13 @@ public class ChatServer {
             System.out.println("클라이언트 연결됨");
 
             BufferedReader br = new BufferedReader(new InputStreamReader(clientSocket.getInputStream())); //불필요한 객체 생성 방지로 반복문 밖에 작성
-            while(true) {
+            PrintWriter printWriter = new PrintWriter(clientSocket.getOutputStream(),true);
+             while(true) {
 
                 String message = br.readLine();
-                System.out.println(message);
+                System.out.println(message);//서버콘솔 출력
                 if(message == null || message.equals("종료")) break; //종료조건
+                printWriter.println(message); //클라이언트에 다시 전송(에코)
 
             }
             br.close();

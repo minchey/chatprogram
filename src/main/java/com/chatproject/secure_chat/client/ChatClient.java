@@ -21,12 +21,15 @@ public class ChatClient {
 
         if (clientSocket != null) { //null값 아닐때 실행
             try {
-                    BufferedReader br = new BufferedReader(new InputStreamReader(System.in)); //bufferedreader로 입력받기
-                    PrintWriter printwriter = new PrintWriter(clientSocket.getOutputStream(), true); //서버에 전송
-                while (true){
+                BufferedReader br = new BufferedReader(new InputStreamReader(System.in)); //bufferedreader로 입력받기
+                PrintWriter printwriter = new PrintWriter(clientSocket.getOutputStream(), true); //서버에 전송
+                BufferedReader serverReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));//서버에서 재전송된 메시지
+                while (true) {
                     String message = br.readLine();
                     printwriter.println(message);
-                    if(message.equals("종료")) break;
+                    if (message.equals("종료")) break;
+                    String response = serverReader.readLine(); //서버에서 전송 된 메시지 출력
+                    System.out.println("서버: " + response);
                 }
                 printwriter.close();
                 br.close();
