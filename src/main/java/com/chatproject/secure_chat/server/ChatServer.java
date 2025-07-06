@@ -19,12 +19,12 @@ public class ChatServer {
             Socket clientSocket = serverSocket.accept(); //클라이언트 연결
             System.out.println("클라이언트 연결됨");
 
-            BufferedReader br = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            BufferedReader br = new BufferedReader(new InputStreamReader(clientSocket.getInputStream())); //불필요한 객체 생성 방지로 반복문 밖에 작성
             while(true) {
 
                 String message = br.readLine();
                 System.out.println(message);
-                if(message == null || message.equals("종료")) break;
+                if(message == null || message.equals("종료")) break; //종료조건
 
             }
             br.close();
