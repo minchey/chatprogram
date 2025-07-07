@@ -23,9 +23,7 @@ public class ChatServer {
                 thread.start();
             }
 
-
-
-            serverSocket.close(); //서버 종료
+            //serverSocket.close(); //서버 종료
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -32,7 +32,10 @@ public class ChatClient {
                 while (true) {
                     String message = br.readLine();
                     printwriter.println(message);
-                    if (message.equals("종료")) break;
+                    if (message == null || message.equals("종료")) {
+
+                        break;
+                    }
                 }
                 //자원정리
                 printwriter.close();
