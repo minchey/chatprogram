@@ -32,7 +32,7 @@ public class ChatServer {
             }
 
             //serverSocket.close(); //서버 종료
-        } catch (Exception e) {
+        } catch (Exception e) { //오류처리
             e.printStackTrace();
         }
 
