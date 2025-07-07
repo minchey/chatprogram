@@ -1,4 +1,4 @@
-package com.chatproject.secure_chat.server;
+package com.chatproject.secure_chat.server; //서버스레드
 
 import java.io.InputStreamReader;
 import java.io.BufferedReader;
@@ -22,7 +22,7 @@ public class ClientMessageReader implements Runnable {
             while (true) {
                 String message = br.readLine();
                 writer.println(message);
-                if (message == null || message.equals("종료")) break;
+                if (message == null || message.equals("종료")) break; //루프 종료문
                 System.out.println(message);
 
 
