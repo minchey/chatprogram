@@ -29,6 +29,10 @@ public class ChatClient {
                 //메시지 입력 (사용자 -> 서버)
                 BufferedReader br = new BufferedReader(new InputStreamReader(System.in)); //bufferedreader로 입력받기
                 PrintWriter printwriter = new PrintWriter(clientSocket.getOutputStream(), true); //서버에 전송
+
+                System.out.println("닉네임을 입력하세요: ");
+                String nickname = br.readLine();
+                printwriter.println(nickname);
                 while (true) {
                     String message = br.readLine();
                     printwriter.println(message);

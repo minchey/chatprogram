@@ -29,4 +29,12 @@ public class ClientInfo {
     public boolean isValid() {
         return isValid;
     }
+
+    public Socket getSocket() {
+        return this.socket;
+    }
+
+    public PrintWriter getPw() {
+        return pw;
+    }
 }
