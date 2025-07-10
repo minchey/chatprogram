@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.io.PrintWriter;
 import java.io.OutputStream;
 import java.net.Socket;
-
+import java.util.random.RandomGenerator;
 
 public class ClientInfo {
     private String nickname;
@@ -14,7 +14,8 @@ public class ClientInfo {
     private PrintWriter pw;
 
     public ClientInfo(String nickname, Socket socket) {
-        this.nickname = nickname;
+        int randomId = RandomGenerator.getDefault().nextInt(10000);
+        this.nickname = nickname + '#' + randomId;
         this.socket = socket;
         this.connectedAt = LocalDateTime.now();
         try {
@@ -36,5 +37,9 @@ public class ClientInfo {
 
     public PrintWriter getPw() {
         return pw;
+    }
+
+    public String getNickname(){
+        return nickname;
     }
 }

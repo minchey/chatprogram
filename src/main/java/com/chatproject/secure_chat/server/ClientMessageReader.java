@@ -41,7 +41,7 @@ public class ClientMessageReader implements Runnable {
                 }
 
 
-                if (message == null || message.equals("종료")) break; //루프 종료문
+                if (message == null || msg.getMsg().equals("종료")) break; //루프 종료문
                 System.out.println(message);
 
 

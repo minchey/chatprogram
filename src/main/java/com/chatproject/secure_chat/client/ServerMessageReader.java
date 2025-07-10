@@ -22,7 +22,7 @@ public class ServerMessageReader implements Runnable {
                     socket.close();
                     break;
                 }
-                System.out.println("서버: " + message);
+                System.out.println(message);
             }
             br.close();
         } catch (Exception e) {
