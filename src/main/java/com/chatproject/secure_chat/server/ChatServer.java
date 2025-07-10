@@ -18,7 +18,7 @@ public class ChatServer {
 
 
         try { //예외처리
-            ServerSocket serverSocket = new ServerSocket(9999); //포트번호 9999로 서버 오픈
+            ServerSocket serverSocket = new ServerSocket( 9999); //포트번호 9999로 서버 오픈
             System.out.println("서버실행 연결대기중...");
 
             while (true) {

@@ -24,20 +24,20 @@ public class ClientMessageReader implements Runnable {
 
             BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-            PrintWriter writer = new PrintWriter(socket.getOutputStream(),true);
+            PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
 
 
             while (true) {
                 String message = br.readLine();
-                synchronized (ChatServer.clientList){
-                    for(ClientInfo client : ChatServer.clientList){
-                        if(!client.getSocket().equals(this.socket)){
+                synchronized (ChatServer.clientList) {
+                    for (ClientInfo client : ChatServer.clientList) {
+                        if (!client.getSocket().equals(this.socket)) {
                             client.getPw().println(message);
                         }
                     }
                 }
 
-                writer.println(message);
+
                 if (message == null || message.equals("종료")) break; //루프 종료문
                 System.out.println(message);
 
