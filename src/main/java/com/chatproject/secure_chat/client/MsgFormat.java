@@ -1,5 +1,7 @@
 package com.chatproject.secure_chat.client;
 
+import com.chatproject.secure_chat.server.ClientInfo;
+
 import java.time.LocalDateTime;
 
 
@@ -9,7 +11,6 @@ public class MsgFormat {
     private String timestamp;
     public MsgFormat(){}
     public MsgFormat(String nickname,String msg){
-
         this.nickname = nickname;
         this.msg = msg;
         this.timestamp = LocalDateTime.now().toString();
