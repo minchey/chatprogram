@@ -3,13 +3,14 @@ package com.chatproject.secure_chat.client;
 import java.io.BufferedReader; //네트워크 통신시에 scanner 보다 빠르고 좋음
 import java.io.InputStreamReader;
 import java.io.PrintWriter; //서버에 전송할때 필요
-
+import com.google.gson.Gson;
 import java.net.Socket;
 
 
 public class ChatClient {
     public static void main(String[] args) {
         Socket clientSocket = null; //소켓 객체 생성
+        Gson gson = new Gson();
 
         try { //예외처리
             System.out.println("서버에 연결합니다");
@@ -35,7 +36,9 @@ public class ChatClient {
                 printwriter.println(nickname);
                 while (true) {
                     String message = br.readLine();
-                    printwriter.println(message);
+                    MsgFormat msgFormat = new MsgFormat(nickname, message);
+                    String jsonMsg = gson.toJson(msgFormat);
+                    printwriter.println(jsonMsg);
                     if (message == null || message.equals("종료")) {
 
                         break;

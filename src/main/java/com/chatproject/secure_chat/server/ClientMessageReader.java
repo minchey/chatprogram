@@ -1,13 +1,12 @@
 package com.chatproject.secure_chat.server; //서버스레드
 
-import com.chatproject.secure_chat.client.ChatClient;
-import com.chatproject.secure_chat.server.ChatServer;
+import com.chatproject.secure_chat.client.MsgFormat;
+import com.google.gson.Gson;
 
-import java.awt.*;
 import java.io.InputStreamReader;
 import java.io.BufferedReader;
 import java.io.PrintWriter;
-import java.util.ArrayList;
+import java.time.LocalDateTime;
 import java.net.Socket;
 
 public class ClientMessageReader implements Runnable {
@@ -17,6 +16,7 @@ public class ClientMessageReader implements Runnable {
     public ClientMessageReader(Socket socket) {
         this.socket = socket;
     }
+    Gson gson = new Gson();
 
     @Override
     public void run() {
@@ -29,10 +29,13 @@ public class ClientMessageReader implements Runnable {
 
             while (true) {
                 String message = br.readLine();
+                MsgFormat msg = gson.fromJson(message, MsgFormat.class);
+                String msgjson = gson.toJson(msg);
                 synchronized (ChatServer.clientList) {
                     for (ClientInfo client : ChatServer.clientList) {
                         if (!client.getSocket().equals(this.socket)) {
-                            client.getPw().println(message);
+
+                            client.getPw().println(msgjson);
                         }
                     }
                 }

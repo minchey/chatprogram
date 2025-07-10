@@ -2,6 +2,7 @@ package com.chatproject.secure_chat.client;
 
 import java.time.LocalDateTime;
 
+
 public class MsgFormat {
     private String nickname;
     private String msg;
@@ -15,6 +16,7 @@ public class MsgFormat {
 
     }
 
+
     public String getNickname(){
         return nickname;
     }
@@ -22,7 +24,7 @@ public class MsgFormat {
         this.nickname = nickname;
     }
 
-    public String Msg(){
+    public String getMsg(){
         return msg;
     }
     public void setMsg(String msg){
