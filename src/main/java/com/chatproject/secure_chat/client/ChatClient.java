@@ -41,6 +41,8 @@ public class ChatClient {
                     String message = br.readLine();
                     MsgFormat msgFormat = new MsgFormat(clientInfo.getNickname(), message);
                     String jsonMsg = gson.toJson(msgFormat);
+                    String text = message;
+                    byte[] input = text.getBytes();
                     printwriter.println(jsonMsg);
                     if (message == null || message.equals("종료")) {
 
