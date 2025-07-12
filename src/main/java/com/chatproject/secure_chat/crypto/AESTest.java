@@ -11,6 +11,7 @@ public class AESTest {
 
         // 3. SubBytes 적용
         byte[][] substituted = SubBytes.applySubBytes(state.getState());
+         substituted = ShiftRows.shiftRows(substituted);
 
         // 4. 결과 출력
         System.out.println("🔹 SubBytes 결과:");
