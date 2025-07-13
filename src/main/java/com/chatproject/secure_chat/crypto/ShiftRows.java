@@ -1,4 +1,4 @@
-package com.chatproject.secure_chat.crypto;
+package com.chatproject.secure_chat.crypto; //첫번째행 0칸, 두번째 행 1칸, 세번쨰 2칸, 네번쨰 3칸 왼쪽으로 이동
 
 public class ShiftRows {
     public static byte[][] shiftRows(byte[][] input){
