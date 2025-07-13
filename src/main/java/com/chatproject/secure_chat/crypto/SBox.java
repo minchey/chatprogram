@@ -1,7 +1,7 @@
 package com.chatproject.secure_chat.crypto;
 
 public class SBox {
-    public static final byte[] block = new byte[]{
+    public static final byte[] block = new byte[]{ //SBox
             (byte)0x63, (byte)0x7c, (byte)0x77, (byte)0x7b, (byte)0xf2, (byte)0x6b, (byte)0x6f, (byte)0xc5,
             (byte)0x30, (byte)0x01, (byte)0x67, (byte)0x2b, (byte)0xfe, (byte)0xd7, (byte)0xab, (byte)0x76,
             (byte)0xca, (byte)0x82, (byte)0xc9, (byte)0x7d, (byte)0xfa, (byte)0x59, (byte)0x47, (byte)0xf0,

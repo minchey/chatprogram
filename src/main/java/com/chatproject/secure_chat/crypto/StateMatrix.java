@@ -3,7 +3,7 @@ package com.chatproject.secure_chat.crypto;
 public class StateMatrix { //행렬 만들기
     private byte[][] state = new byte[4][4];
 
-    public StateMatrix(byte[] input){
+    public StateMatrix(byte[] input){ //세로로 진행
         for(int i = 0 ; i < 16 ; i++){
             state[i%4][i/4] = input[i];
         }
