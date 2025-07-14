@@ -21,5 +21,17 @@ public class AESTest {
             }
             System.out.println();
         }
+
+
+        //Mixcolumns 결과테스트
+        byte[][] mixed = MixColumns.applyMixColumns(substituted);
+        System.out.println("🔹 MixColumns 결과:");
+        for (int row = 0; row < 4; row++) {
+            for (int col = 0; col < 4; col++) {
+                System.out.printf("%02X ", mixed[row][col]);
+            }
+            System.out.println();
+        }
+
     }
 }
