@@ -2,36 +2,18 @@ package com.chatproject.secure_chat.crypto;
 
 public class AESTest {
     public static void main(String[] args) {
-        // 1. 테스트용 문자열 (16바이트)
-        String text = "AES Test String!"; // 정확히 16글자 (16바이트)
-        byte[] inputBytes = text.getBytes();
+        try {
+            String key = "MySecretAESKey12"; // 16바이트 키
+            String message = "Hello AES World!";
 
-        // 2. 상태 행렬 생성
-        StateMatrix state = new StateMatrix(inputBytes);
+            String encrypted = AESUtil.encrypt(message, key);
+            System.out.println("🔐 Encrypted: " + encrypted);
 
-        // 3. SubBytes 적용
-        byte[][] substituted = SubBytes.applySubBytes(state.getState());
-         substituted = ShiftRows.shiftRows(substituted);
+            String decrypted = AESUtil.decrypt(encrypted, key);
+            System.out.println("🔓 Decrypted: " + decrypted);
 
-        // 4. 결과 출력
-        System.out.println("🔹 SubBytes 결과:");
-        for (int row = 0; row < 4; row++) {
-            for (int col = 0; col < 4; col++) {
-                System.out.printf("%02X ", substituted[row][col]);
-            }
-            System.out.println();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-
-        //Mixcolumns 결과테스트
-        byte[][] mixed = MixColumns.applyMixColumns(substituted);
-        System.out.println("🔹 MixColumns 결과:");
-        for (int row = 0; row < 4; row++) {
-            for (int col = 0; col < 4; col++) {
-                System.out.printf("%02X ", mixed[row][col]);
-            }
-            System.out.println();
-        }
-
     }
 }
