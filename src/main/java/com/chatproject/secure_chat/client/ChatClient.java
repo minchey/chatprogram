@@ -4,6 +4,11 @@ import java.io.BufferedReader; //네트워크 통신시에 scanner 보다 빠르
 import java.io.InputStreamReader;
 import java.io.PrintWriter; //서버에 전송할때 필요
 
+import javax.crypto.KeyGenerator;
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+
+import com.chatproject.secure_chat.crypto.AESUtil;
 import com.chatproject.secure_chat.server.ClientInfo;
 import com.google.gson.Gson;
 import java.net.Socket;
@@ -12,7 +17,7 @@ import java.net.Socket;
 public class ChatClient {
     public static void main(String[] args) {
         Socket clientSocket = null; //소켓 객체 생성
-        Gson gson = new Gson();
+        Gson gson = new Gson(); //json 형식 만들기
 
         try { //예외처리
             System.out.println("서버에 연결합니다");
@@ -24,8 +29,12 @@ public class ChatClient {
 
         if (clientSocket != null) { //null값 아닐때 실행
             try {
+                //AES키 생성
+                KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
+                keyGenerator.init(128);
+                SecretKey secretKey = keyGenerator.generateKey();
                 //서버 메시지를 수신할 스레드 실행
-                ServerMessageReader servermessagereader = new ServerMessageReader(clientSocket);
+                ServerMessageReader servermessagereader = new ServerMessageReader(clientSocket, secretKey);
                 Thread thread = new Thread(servermessagereader);
                 thread.start();
 
@@ -39,13 +48,15 @@ public class ChatClient {
                 printwriter.println(clientInfo.getNickname());
                 while (true) {
                     String message = br.readLine();
-                    MsgFormat msgFormat = new MsgFormat(clientInfo.getNickname(), message);
-                    String jsonMsg = gson.toJson(msgFormat);
-                    printwriter.println(jsonMsg);
                     if (message == null || message.equals("종료")) {
 
                         break;
                     }
+                    String encryptMsg = AESUtil.encrypt(message,secretKey);
+                    MsgFormat msgFormat = new MsgFormat(clientInfo.getNickname(), encryptMsg);
+                    String jsonMsg = gson.toJson(msgFormat);
+                    printwriter.println(jsonMsg);
+
                 }
                 //자원정리
                 printwriter.close();
