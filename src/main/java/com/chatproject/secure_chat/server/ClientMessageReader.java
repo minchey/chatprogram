@@ -12,9 +12,11 @@ import java.net.Socket;
 public class ClientMessageReader implements Runnable {
 
     private Socket socket;
+    private String nickName;
 
-    public ClientMessageReader(Socket socket) {
+    public ClientMessageReader(Socket socket, String nickName) {
         this.socket = socket;
+        this.nickName = nickName;
     }
     Gson gson = new Gson();
 
@@ -42,7 +44,7 @@ public class ClientMessageReader implements Runnable {
 
 
                 if (message == null || msg.getMsg().equals("종료")) break; //루프 종료문
-                System.out.println(message);
+                System.out.println(nickName +":" + msg.getMsg());
 
 
             }

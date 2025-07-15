@@ -7,6 +7,7 @@ import java.io.PrintWriter; //서버에 전송할때 필요
 import javax.crypto.KeyGenerator;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
+import java.util.Base64;
 
 import com.chatproject.secure_chat.crypto.AESUtil;
 import com.chatproject.secure_chat.server.ClientInfo;
@@ -33,8 +34,9 @@ public class ChatClient {
                 KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
                 keyGenerator.init(128);
                 SecretKey secretKey = keyGenerator.generateKey();
+                String aesKeyString = Base64.getEncoder().encodeToString(secretKey.getEncoded());
                 //서버 메시지를 수신할 스레드 실행
-                ServerMessageReader servermessagereader = new ServerMessageReader(clientSocket, secretKey);
+                ServerMessageReader servermessagereader = new ServerMessageReader(clientSocket);
                 Thread thread = new Thread(servermessagereader);
                 thread.start();
 
@@ -53,7 +55,7 @@ public class ChatClient {
                         break;
                     }
                     String encryptMsg = AESUtil.encrypt(message,secretKey);
-                    MsgFormat msgFormat = new MsgFormat(clientInfo.getNickname(), encryptMsg);
+                    MsgFormat msgFormat = new MsgFormat(clientInfo.getNickname(), encryptMsg, aesKeyString);
                     String jsonMsg = gson.toJson(msgFormat);
                     printwriter.println(jsonMsg);
 

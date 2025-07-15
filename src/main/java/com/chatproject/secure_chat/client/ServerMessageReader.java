@@ -4,17 +4,16 @@ import com.chatproject.secure_chat.crypto.AESUtil;
 import com.google.gson.Gson;
 
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import java.util.Base64;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.Socket;
 
 public class ServerMessageReader implements Runnable {
     private Socket socket;
-    private final SecretKey secretKey;
-
-    public ServerMessageReader(Socket socket, SecretKey secretKey) {
+    public ServerMessageReader(Socket socket) {
         this.socket = socket;
-        this.secretKey = secretKey;
     }
 
     @Override
@@ -29,8 +28,15 @@ public class ServerMessageReader implements Runnable {
                     socket.close();
                     break;
                 }
-                MsgFormat msgFormat = gson.fromJson(message, MsgFormat.class); //메세지만 뽑아오기
-                String decryptedMsg = AESUtil.decrypt(msgFormat.getMsg(), secretKey); //복호화
+                // JSON 파싱
+                MsgFormat msgFormat = gson.fromJson(message, MsgFormat.class);
+
+                // 🔐 Base64로 인코딩된 AES 키 복원
+                byte[] decodedKey = Base64.getDecoder().decode(msgFormat.getAesKey());
+                SecretKeySpec secretKey = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
+
+                // 🔓 메시지 복호화
+                String decryptedMsg = AESUtil.decrypt(msgFormat.getMsg(), secretKey);
 
                 System.out.println(msgFormat.getNickname() + ": " + decryptedMsg); //사용자에게 보기 좋게 출력
             }

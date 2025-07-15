@@ -28,7 +28,7 @@ public class ChatServer {
                 ClientInfo clientInfo = new ClientInfo(nickname, clientSocket);
                 clientList.add(clientInfo);
                 System.out.println(nickname + "님 연결됨");
-                Thread thread = new Thread(new ClientMessageReader(clientSocket));
+                Thread thread = new Thread(new ClientMessageReader(clientSocket, nickname));
                 thread.start();
             }
 
