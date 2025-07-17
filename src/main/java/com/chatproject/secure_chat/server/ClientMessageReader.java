@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 import java.io.InputStreamReader;
 import java.io.BufferedReader;
 import java.io.PrintWriter;
+import java.security.PublicKey;
 import java.time.LocalDateTime;
 import java.net.Socket;
 
@@ -13,10 +14,12 @@ public class ClientMessageReader implements Runnable {
 
     private Socket socket;
     private String nickName;
+    private PublicKey pubKey;
 
-    public ClientMessageReader(Socket socket, String nickName) {
+    public ClientMessageReader(Socket socket, String nickName, PublicKey pubKey) {
         this.socket = socket;
         this.nickName = nickName;
+        this.pubKey = pubKey;
     }
     Gson gson = new Gson();
 
