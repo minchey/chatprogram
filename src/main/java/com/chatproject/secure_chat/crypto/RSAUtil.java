@@ -5,10 +5,25 @@ import java.security.*;
 import java.util.Base64;
 
 public class RSAUtil {
+    private static KeyPair keyPair;
+
+    static {
+        try{
+            keyPair = generateKeyPair();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
     public static KeyPair generateKeyPair() throws Exception{ //키 쌍 생성
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
         generator.initialize(2048);
         return generator.generateKeyPair();
+    }
+    public static PublicKey getPublicKey(){ //공개키 가져오기
+        return keyPair.getPublic();
+    }
+    public static PrivateKey getPrivateKey(){//개인키 가져오기
+        return keyPair.getPrivate();
     }
     public static String encrypt(String plainText, PublicKey publicKey) throws Exception{
         Cipher cipher = Cipher.getInstance("RSA");
