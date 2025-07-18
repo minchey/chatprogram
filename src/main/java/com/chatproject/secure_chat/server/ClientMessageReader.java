@@ -7,7 +7,7 @@ import java.io.InputStreamReader;
 import java.io.BufferedReader;
 import java.io.PrintWriter;
 import java.security.PublicKey;
-import java.time.LocalDateTime;
+import java.util.Base64;
 import java.net.Socket;
 
 public class ClientMessageReader implements Runnable {
@@ -34,21 +34,45 @@ public class ClientMessageReader implements Runnable {
 
             while (true) {
                 String message = br.readLine();
-                MsgFormat msg = gson.fromJson(message, MsgFormat.class);
-                String msgjson = gson.toJson(msg);
-                synchronized (ChatServer.clientList) {
-                    for (ClientInfo client : ChatServer.clientList) {
-                        if (!client.getSocket().equals(this.socket)) {
+                System.out.println("📨 수신된 메시지(raw): " + message);
 
-                            client.getPw().println(msgjson);
-                        }
+                // 🔐 공개키 요청 처리
+                if (message.startsWith("REQUEST_KEY:")) {
+                    String targetNickname = message.substring("REQUEST_KEY:".length());
+                    PublicKey targetKey = ChatServer.publicKeyMap.get(targetNickname);
+                    if (targetKey != null) {
+                        String encodedKey = Base64.getEncoder().encodeToString(targetKey.getEncoded());
+                        writer.println("KEY:" + encodedKey);
+                    } else {
+                        writer.println("ERROR:상대방 공개키를 찾을 수 없습니다.");
                     }
+                    continue;
                 }
 
 
-                if (message == null || msg.getMsg().equals("종료")) break; //루프 종료문
-                System.out.println(nickName +":" + msg.getMsg());
+                if (message.startsWith("{")) {
+                    try {
+                        MsgFormat msg = gson.fromJson(message, MsgFormat.class);
 
+                        // 메시지 종료 검사
+                        if ("종료".equals(msg.getMsg())) break;
+
+                        synchronized (ChatServer.clientList) {
+                            for (ClientInfo client : ChatServer.clientList) {
+                                if (!client.getSocket().equals(this.socket)) {
+                                    client.getPw().println(message);
+                                }
+                            }
+                        }
+
+                        System.out.println(nickName + ": " + msg.getMsg());
+                    } catch (Exception e) {
+                        System.out.println("❌ JSON 파싱 실패: " + message);
+                        e.printStackTrace();
+                    }
+                } else {
+                    System.out.println("서버로부터 수신된 일반 메시지: " + message);
+                }
 
             }
             br.close();

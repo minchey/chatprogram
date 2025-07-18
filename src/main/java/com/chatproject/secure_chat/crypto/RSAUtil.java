@@ -3,6 +3,8 @@ package com.chatproject.secure_chat.crypto;
 import javax.crypto.Cipher;
 import java.security.*;
 import java.util.Base64;
+import java.nio.charset.StandardCharsets;
+
 
 public class RSAUtil {
     private static KeyPair keyPair;
@@ -26,15 +28,16 @@ public class RSAUtil {
         return keyPair.getPrivate();
     }
     public static String encrypt(String plainText, PublicKey publicKey) throws Exception{
-        Cipher cipher = Cipher.getInstance("RSA");
+        Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
         cipher.init(Cipher.ENCRYPT_MODE, publicKey);
         byte[] encrypted = cipher.doFinal(plainText.getBytes());
         return Base64.getEncoder().encodeToString(encrypted);
     }
     public static String decrypt(String encryptedText, PrivateKey privateKey) throws Exception{
-        Cipher cipher = Cipher.getInstance("RSA");
+        Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
         cipher.init(Cipher.DECRYPT_MODE, privateKey);
-        byte[] decrypted = cipher.doFinal(Base64.getDecoder().decode(encryptedText));
-        return new String(decrypted);
+        byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(encryptedText));
+        return new String(decryptedBytes, StandardCharsets.UTF_8);
+
     }
 }

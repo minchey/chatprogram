@@ -46,20 +46,6 @@ public class ChatServer {
                 System.out.println(nickname + "님 연결됨");
                 System.out.println(publicKey);
 
-                //요청온 상대 공개키 전송
-                // 추가: 상대 공개키 요청 처리
-                while (true) {
-                    String targetNickname = br.readLine();
-                    PublicKey targetPublicKey = publicKeyMap.get(targetNickname);
-
-                    if (targetPublicKey != null) {
-                        String base64TargetKey = Base64.getEncoder().encodeToString(targetPublicKey.getEncoded());
-                        pw.println("KEY:" + base64TargetKey); // 클라이언트에 보내줌
-                        break;
-                    } else {
-                        pw.println("ERROR:상대방 공개키를 찾을 수 없습니다.");
-                    }
-                }
 
                 Thread thread = new Thread(new ClientMessageReader(clientSocket, nickname, publicKey));
                 thread.start();
