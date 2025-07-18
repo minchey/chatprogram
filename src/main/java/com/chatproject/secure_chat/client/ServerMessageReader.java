@@ -28,17 +28,19 @@ public class ServerMessageReader implements Runnable {
                     socket.close();
                     break;
                 }
-                // JSON 파싱
-                MsgFormat msgFormat = gson.fromJson(message, MsgFormat.class);
+                if(message.startsWith("{")) {
+                    // JSON 파싱
+                    MsgFormat msgFormat = gson.fromJson(message, MsgFormat.class);
 
-                // 🔐 Base64로 인코딩된 AES 키 복원
-                byte[] decodedKey = Base64.getDecoder().decode(msgFormat.getAesKey());
-                SecretKeySpec secretKey = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
+                    // 🔐 Base64로 인코딩된 AES 키 복원
+                    byte[] decodedKey = Base64.getDecoder().decode(msgFormat.getAesKey());
+                    SecretKeySpec secretKey = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
 
-                // 🔓 메시지 복호화
-                String decryptedMsg = AESUtil.decrypt(msgFormat.getMsg(), secretKey);
+                    // 🔓 메시지 복호화
+                    String decryptedMsg = AESUtil.decrypt(msgFormat.getMsg(), secretKey);
 
-                System.out.println(msgFormat.getNickname() + ": " + decryptedMsg); //사용자에게 보기 좋게 출력
+                    System.out.println(msgFormat.getNickname() + ": " + decryptedMsg); //사용자에게 보기 좋게 출력
+                }else System.out.println("서버로부터 수신: " + message);
             }
             br.close();
         } catch (Exception e) {

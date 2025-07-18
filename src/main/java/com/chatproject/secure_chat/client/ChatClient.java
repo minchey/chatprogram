@@ -7,8 +7,10 @@ import java.io.PrintWriter; //서버에 전송할때 필요
 import javax.crypto.KeyGenerator;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
+import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 import com.chatproject.secure_chat.crypto.AESUtil;
@@ -64,6 +66,27 @@ public class ChatClient {
                 //공개키 서버에 전송
                 String base64PubKey = Base64.getEncoder().encodeToString(publicKey.getEncoded());
                 printwriter.println(base64PubKey);
+
+                //상대 공개키 요청
+                System.out.println("누구와 채팅하시겠습니까?");
+                String targetNickName = br.readLine();
+                printwriter.println(targetNickName);
+
+                String line = br.readLine();
+                if(line.startsWith("KEY:")){
+                    String keyString = line.substring(4);
+
+                    //공개키 수신하고 public키로 변환
+                    byte[] keyBytes = Base64.getDecoder().decode(keyString);
+                    X509EncodedKeySpec spec = new X509EncodedKeySpec(keyBytes);
+                    KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+                    PublicKey otherPublicKey = keyFactory.generatePublic(spec);
+                }
+                else if(line.startsWith("ERROR:")){
+                    System.out.println(line.substring(6));
+                }
+
+
 
                 while (true) {
                     String message = br.readLine();
