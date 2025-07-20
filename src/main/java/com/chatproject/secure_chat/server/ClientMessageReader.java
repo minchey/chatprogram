@@ -3,9 +3,7 @@ package com.chatproject.secure_chat.server; //서버스레드
 import com.chatproject.secure_chat.client.MsgFormat;
 import com.google.gson.Gson;
 
-import java.io.InputStreamReader;
-import java.io.BufferedReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.security.PublicKey;
 import java.util.Base64;
 import java.net.Socket;
@@ -35,6 +33,7 @@ public class ClientMessageReader implements Runnable {
             while (true) {
                 String message = br.readLine();
                 System.out.println("📨 수신된 메시지(raw): " + message);
+                saveLog(nickName, message);
 
                 // 🔐 공개키 요청 처리
                 if (message.startsWith("REQUEST_KEY:")) {
@@ -78,6 +77,26 @@ public class ClientMessageReader implements Runnable {
             br.close();
             socket.close();
         } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    public static void saveLog(String nickname, String jsonMessage){
+        try {
+            File dir = new File("Message_Logs");
+            if(!dir.exists()) dir.mkdirs();
+
+            File logFile = new File (dir,nickname + ".log");
+
+            try {
+                FileWriter fw = new FileWriter(logFile,true);
+                BufferedWriter bw = new BufferedWriter(fw);
+                bw.write(jsonMessage);
+                bw.newLine();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }catch (Exception e){
             e.printStackTrace();
         }
     }
