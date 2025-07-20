@@ -94,11 +94,13 @@ public class ClientMessageReader implements Runnable {
                 BufferedWriter bw = new BufferedWriter(fw); //버퍼를 하나 더 두고 효율증가 잠시 메모리에 뒀다가 한번에 작성
 
                 LocalDateTime now = LocalDateTime.now(); //현재시간
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-mm-dd HH:mm:ss");
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
                 String timeStamp = now.format(formatter);
 
                 bw.write("[" + timeStamp + "] " + jsonMessage);
                 bw.newLine();
+                bw.flush(); //버퍼에 남아있는 내용들 강제 기록
+                bw.close();
             } catch (Exception e) {
                 e.printStackTrace();
             }
