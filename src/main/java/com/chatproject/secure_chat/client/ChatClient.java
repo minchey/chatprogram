@@ -39,8 +39,6 @@ public class ChatClient {
                 SecretKey secretKey = keyGenerator.generateKey();
                 String aesKeyString = Base64.getEncoder().encodeToString(secretKey.getEncoded());
 
-                // AES 키 암호화
-                String encrypted = RSAUtil.encrypt(aesKeyString, publicKey);
 
                 // 서버 메시지를 수신할 스레드 실행
                 ServerMessageReader serverMessageReader = new ServerMessageReader(clientSocket, privateKey);
@@ -64,6 +62,14 @@ public class ChatClient {
                 System.out.println("누구와 채팅하시겠습니까?");
                 String targetNickName = br.readLine();
                 printwriter.println("REQUEST_KEY:" + targetNickName);
+
+                // otherPublicKey 받아올 때까지 대기
+                while (serverMessageReader.getOtherPublicKey() == null) {
+                    Thread.sleep(100); // 잠깐 기다림
+                }
+
+                //받은 공개키로 AES 키 암호화
+                String encrypted = RSAUtil.encrypt(aesKeyString, serverMessageReader.getOtherPublicKey());
 
                 // 💬 메시지 입력 루프
                 while (true) {
