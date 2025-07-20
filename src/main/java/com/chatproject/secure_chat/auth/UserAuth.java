@@ -1,6 +1,7 @@
 package com.chatproject.secure_chat.auth;
 
 import java.io.*;
+import java.security.MessageDigest;
 
 public class UserAuth {
     private static final String USER_FILE = "users.txt";
@@ -11,15 +12,35 @@ public class UserAuth {
             File file = new File(USER_FILE); //파일 객체 생성
             if(!file.exists()) file.createNewFile(); //파일 없으면 새로 생성 (최초동작)
 
+            //비밀번호 해시화
+            String userPassWord = hashPassword(password);
+
+
             FileWriter fw = new FileWriter(USER_FILE, true); //true 이어쓰기
             BufferedWriter bw =new BufferedWriter(fw);
-            bw.write(eMail + ":" + password + ":" + nickname); //txt에 들어갈 데이터 포맷
+            bw.write(eMail + ":" + userPassWord + ":" + nickname); //txt에 들어갈 데이터 포맷
             bw.newLine(); //줄바꿈 추가
             bw.close();
             return true;
         } catch (IOException e) {
             e.printStackTrace();
             return false;
+        }
+    }
+    public static String hashPassword(String passWord) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = md.digest(passWord.getBytes());
+
+            //바이트를 문자열로 변환
+            StringBuilder sb = new StringBuilder(); //string 이어 붙이기 좋은 클래스
+            for (byte b : hashBytes) { //hashBytes 반복 할때마다 b는 각 값이 됨
+                sb.append(String.format("%02x", b)); //16진수로 변환
+            }
+            return sb.toString(); //최종 문자열로 변환
+        }catch (Exception e){
+            e.printStackTrace();
+            return  null;
         }
     }
 }
