@@ -5,6 +5,8 @@ import com.google.gson.Gson;
 
 import java.io.*;
 import java.security.PublicKey;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.net.Socket;
 
@@ -88,9 +90,14 @@ public class ClientMessageReader implements Runnable {
             File logFile = new File (dir,nickname + ".log");
 
             try {
-                FileWriter fw = new FileWriter(logFile,true);
-                BufferedWriter bw = new BufferedWriter(fw);
-                bw.write(jsonMessage);
+                FileWriter fw = new FileWriter(logFile,true); //logFile에 글을 쓰기 위해 통로 열어두기 true면 이어쓰기 false면 덮어쓰기
+                BufferedWriter bw = new BufferedWriter(fw); //버퍼를 하나 더 두고 효율증가 잠시 메모리에 뒀다가 한번에 작성
+
+                LocalDateTime now = LocalDateTime.now(); //현재시간
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-mm-dd HH:mm:ss");
+                String timeStamp = now.format(formatter);
+
+                bw.write("[" + timeStamp + "] " + jsonMessage);
                 bw.newLine();
             } catch (Exception e) {
                 e.printStackTrace();
