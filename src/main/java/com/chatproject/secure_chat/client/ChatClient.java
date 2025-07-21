@@ -1,6 +1,7 @@
 package com.chatproject.secure_chat.client;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 
@@ -10,6 +11,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.Base64;
 
+import com.chatproject.secure_chat.auth.UserAuth;
 import com.chatproject.secure_chat.crypto.AESUtil;
 import com.chatproject.secure_chat.crypto.RSAUtil;
 import com.chatproject.secure_chat.server.ClientInfo;
@@ -20,6 +22,8 @@ public class ChatClient {
     public static void main(String[] args) {
         Socket clientSocket = null;
         Gson gson = new Gson();
+        File file = new File("USER_FILE");
+        ClientInfo clientInfo = null;
 
         try {
             System.out.println("서버에 연결합니다");
@@ -48,11 +52,56 @@ public class ChatClient {
                 BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
                 PrintWriter printwriter = new PrintWriter(clientSocket.getOutputStream(), true);
 
-                // 닉네임 입력 및 전송
-                System.out.println("닉네임을 입력하세요: ");
-                String nickname = br.readLine();
-                ClientInfo clientInfo = new ClientInfo(nickname, clientSocket, publicKey);
-                printwriter.println(clientInfo.getNickname());
+                //로그인 or 회원가입 선택
+                System.out.println("1.회원가입 | 2.로그인");
+                String choice = br.readLine();
+
+                System.out.println("E-mail: ");
+                String email = br.readLine();
+
+                System.out.println("PassWord: ");
+                String passWord = br.readLine();
+
+                boolean success = false;
+
+                //회원가입
+                if("1".equals(choice)){
+                    int randNum = (int)(Math.random() * 9000) + 1000;
+                    System.out.println("닉네임을 입력해주세요: ");
+                    String nickName = br.readLine();
+                    String finalNickName = nickName + "#" + randNum;
+
+                    success = UserAuth.registerUser(email,finalNickName,passWord); //유저파일에 저장
+
+                    if(success) {
+                        System.out.println("회원가입 성공 닉네임: " + finalNickName);
+                    }
+                    else {
+                        System.out.println("회원가입 실패");
+                        return;
+                    }
+                }
+
+                //로그인
+                else if("2".equals(choice)){
+                    success = UserAuth.loginUser(email, passWord);
+
+                    if(success){
+                        System.out.println("로그인 성공!");
+                        String nickName = UserAuth.getNicknameFromUserFile(email);
+                        if (nickName == null) {
+                            System.out.println("닉네임을 찾을 수 없습니다.");
+                            return;
+                        }
+                        clientInfo = new ClientInfo(nickName, clientSocket,publicKey);
+                        printwriter.println(clientInfo.getNickname());
+
+                    }
+                    else {
+                        System.out.println("이메일 혹은 비밀번호를 확인해주세요");
+                        return;
+                    }
+                }
 
                 // 공개키 전송
                 String base64PubKey = Base64.getEncoder().encodeToString(publicKey.getEncoded());

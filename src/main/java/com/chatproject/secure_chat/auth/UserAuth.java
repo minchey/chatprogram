@@ -69,4 +69,27 @@ public class UserAuth {
             return  null;
         }
     }
+    public static String getNicknameFromUserFile(String email){
+        try {
+
+            File file = new File(USER_FILE);
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] findNickname = line.split(":");
+                if (findNickname.length == 3) {
+                    if (findNickname[0].equals(email)) {
+                        br.close();
+                        return findNickname[2];
+                    }
+                }
+            }
+            br.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 }
