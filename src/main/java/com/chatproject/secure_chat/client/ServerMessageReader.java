@@ -2,6 +2,8 @@ package com.chatproject.secure_chat.client;
 
 import com.chatproject.secure_chat.crypto.AESUtil;
 import com.chatproject.secure_chat.crypto.RSAUtil;
+import com.chatproject.secure_chat.server.ChatServer;
+import com.chatproject.secure_chat.server.ClientInfo;
 import com.google.gson.Gson;
 
 import javax.crypto.SecretKey;
@@ -67,6 +69,7 @@ public class ServerMessageReader implements Runnable {
                     String decryptedMsg = AESUtil.decrypt(msgFormat.getMsg(), secretKey);
                     System.out.println(msgFormat.getNickname() + ": " + decryptedMsg);
                 }
+
                 else {
                     System.out.println("💬 일반 수신: " + message);
                 }

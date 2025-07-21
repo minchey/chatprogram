@@ -14,8 +14,10 @@ import java.util.Base64;
 import com.chatproject.secure_chat.auth.UserAuth;
 import com.chatproject.secure_chat.crypto.AESUtil;
 import com.chatproject.secure_chat.crypto.RSAUtil;
+import com.chatproject.secure_chat.server.ChatServer;
 import com.chatproject.secure_chat.server.ClientInfo;
 import com.google.gson.Gson;
+
 import java.net.Socket;
 
 public class ChatClient {
@@ -65,42 +67,43 @@ public class ChatClient {
                 boolean success = false;
 
                 //회원가입
-                if("1".equals(choice)){
-                    int randNum = (int)(Math.random() * 9000) + 1000;
+                if ("1".equals(choice)) {
+                    int randNum = (int) (Math.random() * 9000) + 1000;
                     System.out.println("닉네임을 입력해주세요: ");
                     String nickName = br.readLine();
                     String finalNickName = nickName + "#" + randNum;
 
-                    success = UserAuth.registerUser(email,finalNickName,passWord); //유저파일에 저장
+                    success = UserAuth.registerUser(email, finalNickName, passWord); //유저파일에 저장
 
-                    if(success) {
+                    if (success) {
                         System.out.println("회원가입 성공 닉네임: " + finalNickName);
-                    }
-                    else {
+                        return;
+                    } else {
                         System.out.println("회원가입 실패");
                         return;
                     }
                 }
 
                 //로그인
-                else if("2".equals(choice)){
+                else if ("2".equals(choice)) {
                     success = UserAuth.loginUser(email, passWord);
-
-                    if(success){
+                    if (success) {
                         System.out.println("로그인 성공!");
                         String nickName = UserAuth.getNicknameFromUserFile(email);
-                        if (nickName == null) {
+                        if (nickName == null) { //null값 확인
                             System.out.println("닉네임을 찾을 수 없습니다.");
                             return;
                         }
-                        clientInfo = new ClientInfo(nickName, clientSocket,publicKey);
+                        clientInfo = new ClientInfo(nickName, clientSocket, publicKey);
                         printwriter.println(clientInfo.getNickname());
 
-                    }
-                    else {
+                    } else {
                         System.out.println("이메일 혹은 비밀번호를 확인해주세요");
                         return;
                     }
+                } else {
+                    System.out.println("잘못된 선택입니다.");
+                    return;
                 }
 
                 // 공개키 전송
@@ -108,9 +111,15 @@ public class ChatClient {
                 printwriter.println(base64PubKey);
 
                 // 상대 공개키 요청
+                System.out.println("현재 접속자 확인- 'LIST' 를 입력하세요");
+                String listMessage = br.readLine();
+                if (listMessage.equals("LIST")) {
+                    printwriter.println("LIST");
+                }
                 System.out.println("누구와 채팅하시겠습니까?");
                 String targetNickName = br.readLine();
                 printwriter.println("REQUEST_KEY:" + targetNickName);
+
 
                 // otherPublicKey 받아올 때까지 대기
                 while (serverMessageReader.getOtherPublicKey() == null) {

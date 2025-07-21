@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import java.io.PrintWriter;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.util.random.RandomGenerator;
 
 public class ClientInfo {
     private String nickname;
@@ -16,8 +15,7 @@ public class ClientInfo {
     private PrintWriter pw;
 
     public ClientInfo(String nickname, Socket socket, PublicKey publicKey) {
-        int randomId = RandomGenerator.getDefault().nextInt(10000);
-        this.nickname = nickname + '#' + randomId;
+        this.nickname = nickname;
         this.socket = socket;
         this.publicKey = publicKey;
         this.connectedAt = LocalDateTime.now();

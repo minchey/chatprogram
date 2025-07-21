@@ -71,7 +71,19 @@ public class ClientMessageReader implements Runnable {
                         System.out.println("❌ JSON 파싱 실패: " + message);
                         e.printStackTrace();
                     }
-                } else {
+                }
+                else if("LIST".equals(message)){
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("현재 접속자 목록: \n");
+                    synchronized (ChatServer.clientList){
+                        for(ClientInfo client : ChatServer.clientList){
+                            sb.append("- ").append(client.getNickname()).append("\n");
+                        }
+                    }
+                    writer.println(sb.toString());
+                    continue;
+                }
+                else {
                     System.out.println("서버로부터 수신된 일반 메시지: " + message);
                 }
 
