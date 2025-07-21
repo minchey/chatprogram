@@ -27,6 +27,32 @@ public class UserAuth {
             return false;
         }
     }
+    public static boolean loginUser(String eMail, String passWord){
+        try {
+            File file = new File(USER_FILE);
+            if(!file.exists()) return false;
+            String userPassword = hashPassword(passWord);
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            String line;
+            while ((line = br.readLine()) != null){
+                String[] parts = line.split(":");
+                if(parts.length ==3) {
+                    String storedEmail = parts[0];
+                    String storedPassword = parts[1];
+                    if(storedEmail.equals(eMail) && storedPassword.equals(userPassword)){
+                        br.close();
+                        return true;
+                    }
+                }
+            }
+            br.close();
+            return false;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public static String hashPassword(String passWord) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
