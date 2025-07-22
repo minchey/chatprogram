@@ -4,11 +4,14 @@ import com.chatproject.secure_chat.server.ClientInfo;
 
 import javax.crypto.SecretKey;
 import java.time.LocalDateTime;
+import java.util.List;
 
 
 public class MsgFormat {
+    private String type;
     private String nickname;
     private String msg;
+    private List<String> targetList;
     private String timestamp;
     private String aesKey;
     public MsgFormat(){}
@@ -35,6 +38,7 @@ public class MsgFormat {
         this.msg = msg;
     }
 
+    //현재 시간
     public String getTimestamp(){
         return timestamp;
     }
@@ -42,7 +46,25 @@ public class MsgFormat {
         this.timestamp = timestamp;
     }
 
+    //aes키
     public String getAesKey(){
         return aesKey;
+    }
+
+    //타입 지정
+    public String getType(){
+        return type;
+    }
+
+    public void setType(String type){
+        this.type = type;
+    }
+
+    public List<String> getTargetList(){
+        return targetList;
+    }
+
+    public void setTargetList(List<String> targetList){
+        this.targetList = targetList;
     }
 }
