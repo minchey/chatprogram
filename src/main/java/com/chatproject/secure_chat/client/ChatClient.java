@@ -9,6 +9,7 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.text.MessageFormat;
 import java.util.Base64;
 
 import com.chatproject.secure_chat.auth.UserAuth;
@@ -110,20 +111,38 @@ public class ChatClient {
                 String base64PubKey = Base64.getEncoder().encodeToString(publicKey.getEncoded());
                 printwriter.println(base64PubKey);
 
-                // 상대 공개키 요청
-                System.out.println("현재 접속자 확인- 'LIST' 를 입력하세요");
-                String listMessage = br.readLine();
-                if (listMessage.equals("LIST")) {
-                    printwriter.println("LIST");
-                }
-                System.out.println("누구와 채팅하시겠습니까?");
-                String targetNickName = br.readLine();
-                printwriter.println("REQUEST_KEY:" + targetNickName);
+                //접속자 리스트 요청 루프
+                String targetNickname = null;
+                while (targetNickname == null || targetNickname.isBlank()){
+                    System.out.println("'LIST'를 입력하면 현재 접속자 목록을 볼 수 있습니다.");
+                    String input = br.readLine();
 
+                    if(input.equalsIgnoreCase("LIST")){
+                        MsgFormat listRequest = new MsgFormat();
+                        listRequest.setType("targetListRequest"); //타입지정
+                        listRequest.setNickname(clientInfo.getNickname()); //요청자 닉네임
+
+                        printwriter.println(gson.toJson(listRequest));
+                        Thread.sleep(500);
+                        continue;
+                    }
+
+                    //입력이 LIST가 아닐시 메세지로 판단
+                    targetNickname = input;
+
+                    //공개키 요청 전송
+                    MsgFormat keyRequest = new MsgFormat();
+                    keyRequest.setType("pubkeyRequest");
+                    keyRequest.setNickname(clientInfo.getNickname());
+                    keyRequest.setMsg(targetNickname); //요청 대상 닉네임
+
+                    printwriter.println(gson.toJson(keyRequest));
+                }
 
                 // otherPublicKey 받아올 때까지 대기
                 while (serverMessageReader.getOtherPublicKey() == null) {
                     Thread.sleep(100); // 잠깐 기다림
+                    continue;
                 }
 
                 //받은 공개키로 AES 키 암호화

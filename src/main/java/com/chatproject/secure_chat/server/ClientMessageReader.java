@@ -58,6 +58,26 @@ public class ClientMessageReader implements Runnable {
                         // 메시지 종료 검사
                         if ("종료".equals(msg.getMsg())) break;
 
+                        //list 응답 전송
+                        if("targetListRequest".equals(msg.getType())){
+                            StringBuilder sb = new StringBuilder();
+                            sb.append("현재 접속자 목록: \n");
+
+                            synchronized (ChatServer.clientList){
+                                for(ClientInfo client : ChatServer.clientList){
+                                    sb.append("- ").append(client.getNickname()).append("\n");
+                                }
+                            }
+
+                            MsgFormat response = new MsgFormat();
+                            response.setType("targetList");
+                            response.setNickname("Server");
+                            response.setMsg(sb.toString());
+
+                            writer.println(gson.toJson(response)); //Json형식으로 전송
+                            continue;
+                        }
+
                         synchronized (ChatServer.clientList) {
                             for (ClientInfo client : ChatServer.clientList) {
                                 if (!client.getSocket().equals(this.socket)) {
@@ -72,17 +92,7 @@ public class ClientMessageReader implements Runnable {
                         e.printStackTrace();
                     }
                 }
-                else if("LIST".equals(message)){
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("현재 접속자 목록: \n");
-                    synchronized (ChatServer.clientList){
-                        for(ClientInfo client : ChatServer.clientList){
-                            sb.append("- ").append(client.getNickname()).append("\n");
-                        }
-                    }
-                    writer.println(sb.toString());
-                    continue;
-                }
+
                 else {
                     System.out.println("서버로부터 수신된 일반 메시지: " + message);
                 }

@@ -58,16 +58,25 @@ public class ServerMessageReader implements Runnable {
                 else if (message.startsWith("{")) {
                     MsgFormat msgFormat = gson.fromJson(message, MsgFormat.class);
 
-                    // 🔐 암호화된 AES 키 복호화
-                    String decryptedAESKeyBase64 = RSAUtil.decrypt(msgFormat.getAesKey(), privateKey);
+                    if("message".equals(msgFormat.getType())) {
+                        // 🔐 암호화된 AES 키 복호화
+                        String decryptedAESKeyBase64 = RSAUtil.decrypt(msgFormat.getAesKey(), privateKey);
 
-                    // 🔐 Base64로 인코딩된 AES 키를 복원
-                    byte[] decodedKey = Base64.getDecoder().decode(decryptedAESKeyBase64);
-                    SecretKeySpec secretKey = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
+                        // 🔐 Base64로 인코딩된 AES 키를 복원
+                        byte[] decodedKey = Base64.getDecoder().decode(decryptedAESKeyBase64);
+                        SecretKeySpec secretKey = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
 
-                    // 🔓 복호화
-                    String decryptedMsg = AESUtil.decrypt(msgFormat.getMsg(), secretKey);
-                    System.out.println(msgFormat.getNickname() + ": " + decryptedMsg);
+                        // 🔓 복호화
+                        String decryptedMsg = AESUtil.decrypt(msgFormat.getMsg(), secretKey);
+                        System.out.println(msgFormat.getNickname() + ": " + decryptedMsg);
+                    }
+                    else if("targetList".equals(msgFormat.getType())){
+                        System.out.println(msgFormat.getMsg());
+                    }
+                    else {
+                        // 그 외 시스템 메시지나 추가 타입 처리
+                        System.out.println("📨 시스템 메시지: " + msgFormat.getMsg());
+                    }
                 }
 
                 else {
