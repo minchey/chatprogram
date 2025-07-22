@@ -81,6 +81,8 @@ public class ClientMessageReader implements Runnable {
                         synchronized (ChatServer.clientList) {
                             for (ClientInfo client : ChatServer.clientList) {
                                 if (!client.getSocket().equals(this.socket)) {
+                                    System.out.println("📤 → " + client.getNickname() + "에게 전달");
+
                                     client.getPw().println(message);
                                 }
                             }

@@ -46,14 +46,14 @@ public class ChatClient {
                 SecretKey secretKey = keyGenerator.generateKey();
                 String aesKeyString = Base64.getEncoder().encodeToString(secretKey.getEncoded());
 
-
+                BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+                PrintWriter printwriter = new PrintWriter(clientSocket.getOutputStream(), true);
                 // 서버 메시지를 수신할 스레드 실행
-                ServerMessageReader serverMessageReader = new ServerMessageReader(clientSocket, privateKey);
+                ServerMessageReader serverMessageReader = new ServerMessageReader(clientSocket, privateKey,printwriter);
                 Thread thread = new Thread(serverMessageReader);
                 thread.start();
 
-                BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-                PrintWriter printwriter = new PrintWriter(clientSocket.getOutputStream(), true);
+
 
                 //로그인 or 회원가입 선택
                 System.out.println("1.회원가입 | 2.로그인");
@@ -142,22 +142,31 @@ public class ChatClient {
                 // otherPublicKey 받아올 때까지 대기
                 while (serverMessageReader.getOtherPublicKey() == null) {
                     Thread.sleep(100); // 잠깐 기다림
-                    continue;
                 }
 
                 //받은 공개키로 AES 키 암호화
                 String encrypted = RSAUtil.encrypt(aesKeyString, serverMessageReader.getOtherPublicKey());
+                System.out.println("✅ 메시지 송신 루프 진입 확인");
+
 
                 // 💬 메시지 입력 루프
                 while (true) {
+                    System.out.println("🟡 메시지 입력 대기 중...");
+
                     String message = br.readLine();
+                    System.out.println("✍️ 입력한 메시지: " + message);
+
                     if (message == null || message.equals("종료")) {
+                        System.out.println("🔴 입력이 null이라 종료");
+
                         break;
                     }
                     String encryptMsg = AESUtil.encrypt(message, secretKey);
                     MsgFormat msgFormat = new MsgFormat(clientInfo.getNickname(), encryptMsg, encrypted);
+                    msgFormat.setType("message");
                     String jsonMsg = gson.toJson(msgFormat);
                     printwriter.println(jsonMsg);
+                    System.out.println("전송 완료");
                 }
 
                 // 자원 정리
