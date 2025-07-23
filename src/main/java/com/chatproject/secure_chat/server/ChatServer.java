@@ -30,7 +30,6 @@ public class ChatServer {
                 PrintWriter pw = new PrintWriter(clientSocket.getOutputStream(), true);
                 String nickname = br.readLine(); //닉네임 받기
                 String base64Key = br.readLine(); //공개키 받기
-                //String targetNickName = br.readLine(); //공개키 요청 상대닉네임
 
                 //Base64 -> Bytes -> PublicKey 복원
                 byte[] keyBytes = Base64.getDecoder().decode(base64Key); //기존 2진 데이터 코드로 전환

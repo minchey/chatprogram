@@ -7,6 +7,7 @@ import java.io.*;
 import java.security.PublicKey;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Base64;
 import java.net.Socket;
 
@@ -35,11 +36,20 @@ public class ClientMessageReader implements Runnable {
             while (true) {
                 String message = br.readLine();
                 System.out.println("📨 수신된 메시지(raw): " + message);
-                saveLog(nickName, message);
 
                 if (message.startsWith("{")) {
                     try {
                         MsgFormat msg = gson.fromJson(message, MsgFormat.class);
+
+                        //로그 저장
+                        if("message".equals(msg.getType())) {
+                            ClientInfo clientInfo;
+                            String sender = msg.getNickname(); //보낸사람
+                            String receiver = msg.getTargetList().get(0); //현재 스레드에서 처리중인 사용자
+                            System.out.println("👥 로그 저장 대상: sender=" + sender + ", receiver=" + receiver);
+
+                            saveLog(sender, receiver, message);
+                        }
 
                         // 메시지 종료 검사
                         if ("종료".equals(msg.getMsg())) break;
@@ -123,12 +133,18 @@ public class ClientMessageReader implements Runnable {
             e.printStackTrace();
         }
     }
-    public static void saveLog(String nickname, String jsonMessage){
+    public static void saveLog(String sender,String receiver, String jsonMessage){
         try {
+
+            String[] names = {sender,receiver}; //닉네임 배열로 받기
+            Arrays.sort(names); //닉네임 정렬
+            String fileName = names[0] + "&" + names[1] + ".log";
+
             File dir = new File("Message_Logs");
             if(!dir.exists()) dir.mkdirs();
 
-            File logFile = new File (dir,nickname + ".log");
+
+            File logFile = new File (dir,fileName);
 
             try {
                 FileWriter fw = new FileWriter(logFile,true); //logFile에 글을 쓰기 위해 통로 열어두기 true면 이어쓰기 false면 덮어쓰기
@@ -138,7 +154,7 @@ public class ClientMessageReader implements Runnable {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
                 String timeStamp = now.format(formatter);
 
-                bw.write("[" + timeStamp + "] " + jsonMessage);
+                bw.write("[" + timeStamp + "] " + sender + " → " + receiver + ":" + jsonMessage);
                 bw.newLine();
                 bw.flush(); //버퍼에 남아있는 내용들 강제 기록
                 bw.close();

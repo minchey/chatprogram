@@ -20,6 +20,7 @@ import com.chatproject.secure_chat.server.ClientInfo;
 import com.google.gson.Gson;
 
 import java.net.Socket;
+import java.util.List;
 
 public class ChatClient {
     public static void main(String[] args) {
@@ -166,6 +167,7 @@ public class ChatClient {
                         String encryptMsg = AESUtil.encrypt(message, secretKey);
                         MsgFormat msgFormat = new MsgFormat(clientInfo.getNickname(), encryptMsg, encrypted);
                         msgFormat.setType("message");
+                        msgFormat.setTargetList(List.of(targetNickname));
                         String jsonMsg = gson.toJson(msgFormat);
                         printwriter.println(jsonMsg);
                         System.out.println("전송 완료");
