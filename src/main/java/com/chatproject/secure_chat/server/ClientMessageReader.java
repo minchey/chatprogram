@@ -37,26 +37,43 @@ public class ClientMessageReader implements Runnable {
                 System.out.println("📨 수신된 메시지(raw): " + message);
                 saveLog(nickName, message);
 
-                // 🔐 공개키 요청 처리
-                if (message.startsWith("REQUEST_KEY:")) {
-                    String targetNickname = message.substring("REQUEST_KEY:".length());
-                    PublicKey targetKey = ChatServer.publicKeyMap.get(targetNickname);
-                    if (targetKey != null) {
-                        String encodedKey = Base64.getEncoder().encodeToString(targetKey.getEncoded());
-                        writer.println("KEY:" + encodedKey);
-                    } else {
-                        writer.println("ERROR:상대방 공개키를 찾을 수 없습니다.");
-                    }
-                    continue;
-                }
-
-
                 if (message.startsWith("{")) {
                     try {
                         MsgFormat msg = gson.fromJson(message, MsgFormat.class);
 
                         // 메시지 종료 검사
                         if ("종료".equals(msg.getMsg())) break;
+
+                        // 🔐 공개키 요청 처리
+                        if ("pubkeyRequest".equals(msg.getType())) {
+                            String target = msg.getMsg(); // 요청 대상 닉네임
+                            PublicKey key = ChatServer.publicKeyMap.get(target); // 공개키 조회
+
+                            if (key != null) {
+                                String encodedKey = Base64.getEncoder().encodeToString(key.getEncoded());
+
+                                PrintWriter requesterWriter = null;
+
+                                synchronized (ChatServer.clientList) {
+                                    for (ClientInfo client : ChatServer.clientList) {
+                                        if (client.getNickname().equals(msg.getNickname())) {
+                                            requesterWriter = client.getPw(); // 요청자에게 전송할 writer
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                if (requesterWriter != null) {
+                                    requesterWriter.println("KEY:" + encodedKey);
+                                    System.out.println("✅ " + msg.getNickname() + " 에게 공개키 전송됨");
+                                }
+
+                            } else {
+                                System.out.println("❌ 공개키 조회 실패: " + target);
+                            }
+
+                            continue;
+                        }
 
                         //list 응답 전송
                         if("targetListRequest".equals(msg.getType())){

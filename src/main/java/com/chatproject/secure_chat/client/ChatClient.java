@@ -161,12 +161,20 @@ public class ChatClient {
 
                         break;
                     }
-                    String encryptMsg = AESUtil.encrypt(message, secretKey);
-                    MsgFormat msgFormat = new MsgFormat(clientInfo.getNickname(), encryptMsg, encrypted);
-                    msgFormat.setType("message");
-                    String jsonMsg = gson.toJson(msgFormat);
-                    printwriter.println(jsonMsg);
-                    System.out.println("전송 완료");
+                    try {
+
+                        String encryptMsg = AESUtil.encrypt(message, secretKey);
+                        MsgFormat msgFormat = new MsgFormat(clientInfo.getNickname(), encryptMsg, encrypted);
+                        msgFormat.setType("message");
+                        String jsonMsg = gson.toJson(msgFormat);
+                        printwriter.println(jsonMsg);
+                        System.out.println("전송 완료");
+                    } catch (Exception e) {
+                        System.out.println("🔴 암호화 or 전송 실패!");
+                        e.printStackTrace();
+                    }
+
+
                 }
 
                 // 자원 정리
