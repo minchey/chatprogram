@@ -63,7 +63,6 @@ public class MsgFormat {
     public List<String> getTargetList(){
         return targetList;
     }
-
     public void setTargetList(List<String> targetList){
         this.targetList = targetList;
     }

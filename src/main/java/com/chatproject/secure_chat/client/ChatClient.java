@@ -1,15 +1,15 @@
 package com.chatproject.secure_chat.client;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 
 import com.chatproject.secure_chat.auth.UserAuth;
@@ -50,10 +50,9 @@ public class ChatClient {
                 BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
                 PrintWriter printwriter = new PrintWriter(clientSocket.getOutputStream(), true);
                 // 서버 메시지를 수신할 스레드 실행
-                ServerMessageReader serverMessageReader = new ServerMessageReader(clientSocket, privateKey,printwriter);
+                ServerMessageReader serverMessageReader = new ServerMessageReader(clientSocket, privateKey, printwriter);
                 Thread thread = new Thread(serverMessageReader);
                 thread.start();
-
 
 
                 //로그인 or 회원가입 선택
@@ -114,11 +113,11 @@ public class ChatClient {
 
                 //접속자 리스트 요청 루프
                 String targetNickname = null;
-                while (targetNickname == null || targetNickname.isBlank()){
+                while (targetNickname == null || targetNickname.isBlank()) {
                     System.out.println("'LIST'를 입력하면 현재 접속자 목록을 볼 수 있습니다.");
                     String input = br.readLine();
 
-                    if(input.equalsIgnoreCase("LIST")){
+                    if (input.equalsIgnoreCase("LIST")) {
                         MsgFormat listRequest = new MsgFormat();
                         listRequest.setType("targetListRequest"); //타입지정
                         listRequest.setNickname(clientInfo.getNickname()); //요청자 닉네임
@@ -145,9 +144,54 @@ public class ChatClient {
                     Thread.sleep(100); // 잠깐 기다림
                 }
 
+                List<MsgFormat> receivedMessaged = new ArrayList<>(); //수신한 메시지 저장할 리스트
+                //이전 대화로그 불러오기
+                String myNickname = clientInfo.getNickname(); //현재 사용자 닉네임
+
+                String[] names = {myNickname, targetNickname}; //본인,상대 닉네임 배열
+                Arrays.sort(names); //파일명 일관성 위해 배열정렬
+                String fileName = names[0] + "&" + names[1] + ".log"; //파일이름 재구성해서 파일 찾기
+
+                File logFile = new File("Message_Logs", fileName); //로그파일이 저장된 디렉토리 경로와 파일명 조합해서 File 객체 생성
+                if (logFile.exists()) { //해당 로그파일이 존재하는지 확인
+                    System.out.println("이전 대화기록:");
+                    BufferedReader logReader = new BufferedReader(new FileReader(logFile)); //파일을 한줄씩 읽기위한 BufferedReader
+                    String line;
+
+                    //파일을 끝까지 반복해서 한 줄씩 출력
+                    while ((line = logReader.readLine()) != null) {
+                        int jsonStart = line.indexOf("{");
+                        if (jsonStart != -1) { //{가 없으면 Json이 아님
+                            String jsonPart = line.substring(jsonStart); //Json 부분만 추출
+
+                            try {
+                                MsgFormat msg = gson.fromJson(jsonPart, MsgFormat.class);
+
+                                //AES키 복호화
+                                String decryptedAESKeyBase64 = RSAUtil.decrypt(msg.getAesKey(), privateKey);
+
+                                //Base64 디코딩해서 AES키 복원
+                                byte[] decodedKey = Base64.getDecoder().decode(decryptedAESKeyBase64);
+                                SecretKeySpec secretKeySpec = new SecretKeySpec(decodedKey, "AES");
+
+                                //메시지 복호화
+                                String decryptedMsg = AESUtil.decrypt(msg.getMsg(), secretKeySpec);
+                                System.out.println("[" + msg.getNickname() + "] " + decryptedMsg);
+                            } catch (Exception e) {
+                                System.out.println(" 복호화 실패한 로그: " + line);
+                            }
+
+                        }
+                    }
+
+                    //자원정리
+                    logReader.close();
+                } else {
+                    System.out.println("이전 대화 기록 없음");
+                }
+
                 //받은 공개키로 AES 키 암호화
                 String encrypted = RSAUtil.encrypt(aesKeyString, serverMessageReader.getOtherPublicKey());
-                System.out.println("✅ 메시지 송신 루프 진입 확인");
 
 
                 // 💬 메시지 입력 루프
