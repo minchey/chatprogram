@@ -1,12 +1,10 @@
 package com.chatproject.secure_chat.crypto;
 
 import javax.crypto.Cipher;
-import java.io.FileOutputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.security.*;
 import java.util.Base64;
 import java.nio.charset.StandardCharsets;
-import java.io.File;
 import java.io.FileOutputStream;
 
 /*
@@ -80,11 +78,34 @@ public class RSAUtil {
             FileOutputStream fos = new FileOutputStream(key_File);//파일에 저장해주는 객체
             ObjectOutputStream oos = new ObjectOutputStream(fos); //개인키 직렬화 해주는 객체
             oos.writeObject(privateKey); //privateKey 직렬화 해서 저장
-            System.out.println("개인키 저장완: " + key_File.getPath());
+            System.out.println("개인키 저장완료: " + key_File.getPath());
         } catch (Exception e) {
             System.out.println("개인키 저장 실패");
             e.printStackTrace();
         }
+    }
+
+    //저장한 개인키 파일을 불러와 복원 하는 매서드
+    public static PrivateKey loadPrivateKeyFromFile(String nickName){
+        try{
+            //개인키 저장된 파일 경로 지정
+            File file = new File("PrivateKey_File", nickName + ".key");
+            if(!file.exists()){ //개인키 파일 없을 시에 null 반환
+                System.out.println("개인키 파일이 존재하지 않습니다.");
+                return null;
+            }
+            FileInputStream fis = new FileInputStream(file); //파일 읽어주는 스트림
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            PrivateKey privateKey = (PrivateKey) ois.readObject(); //직렬화 된 privatekey 객체 복원
+            ois.close();
+
+            System.out.println("개인키 로딩 완료" + file.getPath());
+            return privateKey;
+        }catch (Exception e){
+            e.printStackTrace();
+            return null;
+        }
+
     }
 }
 
