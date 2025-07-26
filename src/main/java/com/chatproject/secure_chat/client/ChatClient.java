@@ -5,6 +5,7 @@ import java.io.*;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.text.MessageFormat;
@@ -29,6 +30,10 @@ public class ChatClient {
         File file = new File("USER_FILE");
         ClientInfo clientInfo = null;
 
+        //RSA 키쌍 저장변 (블록 바깥에서 선언)
+        PublicKey publicKey = null;
+        PrivateKey privateKey = null;
+
         try {
             System.out.println("서버에 연결합니다");
             clientSocket = new Socket("127.0.0.1", 9999);
@@ -38,9 +43,6 @@ public class ChatClient {
 
         if (clientSocket != null) {
             try {
-                PublicKey publicKey = RSAUtil.getPublicKey();
-                PrivateKey privateKey = RSAUtil.getPrivateKey();
-
                 // AES 키 생성
                 KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
                 keyGenerator.init(128);
@@ -49,10 +51,7 @@ public class ChatClient {
 
                 BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
                 PrintWriter printwriter = new PrintWriter(clientSocket.getOutputStream(), true);
-                // 서버 메시지를 수신할 스레드 실행
-                ServerMessageReader serverMessageReader = new ServerMessageReader(clientSocket, privateKey, printwriter);
-                Thread thread = new Thread(serverMessageReader);
-                thread.start();
+
 
 
                 //로그인 or 회원가입 선택
@@ -69,6 +68,9 @@ public class ChatClient {
 
                 //회원가입
                 if ("1".equals(choice)) {
+                    KeyPair newKeyPair = RSAUtil.generateKeyPair();
+                    publicKey = newKeyPair.getPublic();
+                    privateKey = newKeyPair.getPrivate();
                     int randNum = (int) (Math.random() * 9000) + 1000;
                     System.out.println("닉네임을 입력해주세요: ");
                     String nickName = br.readLine();
@@ -77,7 +79,11 @@ public class ChatClient {
                     success = UserAuth.registerUser(email, finalNickName, passWord); //유저파일에 저장
 
                     if (success) {
+                        //키파일 저장
+                        RSAUtil.privateKeyToFile(finalNickName,privateKey);
+                        RSAUtil.publicKeyToFile(finalNickName,publicKey);
                         System.out.println("회원가입 성공 닉네임: " + finalNickName);
+
                         return;
                     } else {
                         System.out.println("회원가입 실패");
@@ -91,12 +97,18 @@ public class ChatClient {
                     if (success) {
                         System.out.println("로그인 성공!");
                         String nickName = UserAuth.getNicknameFromUserFile(email);
+                        publicKey = RSAUtil.loadPublickeyFromFile(nickName);
+                        privateKey = RSAUtil.loadPrivateKeyFromFile(nickName);
                         if (nickName == null) { //null값 확인
                             System.out.println("닉네임을 찾을 수 없습니다.");
                             return;
                         }
                         clientInfo = new ClientInfo(nickName, clientSocket, publicKey);
                         printwriter.println(clientInfo.getNickname());
+                        // 서버 메시지를 수신할 스레드 실행
+                        ServerMessageReader serverMessageReader = new ServerMessageReader(clientSocket, privateKey, printwriter);
+                        Thread thread = new Thread(serverMessageReader);
+                        thread.start();
 
                     } else {
                         System.out.println("이메일 혹은 비밀번호를 확인해주세요");
@@ -106,6 +118,8 @@ public class ChatClient {
                     System.out.println("잘못된 선택입니다.");
                     return;
                 }
+
+
 
                 // 공개키 전송
                 String base64PubKey = Base64.getEncoder().encodeToString(publicKey.getEncoded());

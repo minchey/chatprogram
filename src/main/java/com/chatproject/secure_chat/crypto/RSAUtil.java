@@ -14,28 +14,11 @@ import java.io.FileOutputStream;
  */
 
 public class RSAUtil {
-    private static KeyPair keyPair;     // RSA 키 쌍(KeyPair: 공개키 + 개인키)을 저장할 static 변수
-
-    static {    // 클래스 로딩 시 키쌍을 자동으로 생성
-        try {
-            keyPair = generateKeyPair(); // 공개키/개인키 자동으로 생성
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     public static KeyPair generateKeyPair() throws Exception { //키 쌍 생성
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
         generator.initialize(2048); // 보안 강도를 위한 2048비트 키 설정
         return generator.generateKeyPair();
-    }
-
-    public static PublicKey getPublicKey() { //공개키 가져오기
-        return keyPair.getPublic();
-    }
-
-    public static PrivateKey getPrivateKey() {//개인키 가져오기
-        return keyPair.getPrivate();
     }
 
     /**
@@ -140,7 +123,7 @@ public class RSAUtil {
             }
             FileInputStream fis = new FileInputStream(file);
             ObjectInputStream ois = new ObjectInputStream(fis);
-            PublicKey publicKey = (PublicKey) ois.readObject();
+            PublicKey publicKey = (PublicKey) ois.readObject(); //직렬화 된 공개키 복원
             ois.close();
 
             System.out.println("공개키 복원 성공" + file.getPath());
