@@ -79,6 +79,7 @@ public class RSAUtil {
             ObjectOutputStream oos = new ObjectOutputStream(fos); //개인키 직렬화 해주는 객체
             oos.writeObject(privateKey); //privateKey 직렬화 해서 저장
             System.out.println("개인키 저장완료: " + key_File.getPath());
+            oos.close();
         } catch (Exception e) {
             System.out.println("개인키 저장 실패");
             e.printStackTrace();
@@ -106,6 +107,25 @@ public class RSAUtil {
             return null;
         }
 
+    }
+
+    //공개키 저장매서드
+    public static void publicKeyToFile(String nickName, PublicKey publicKey){
+        try{
+            String fileName = nickName + ".pub"; //확장자는 pub
+            File dir = new File("PublicKey_File");
+            if(!dir.exists()) dir.mkdir();
+            File keyFile = new File(dir,fileName);
+
+            FileOutputStream fos = new FileOutputStream(keyFile);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+
+            oos.writeObject(publicKey); //객체 직렬화 해서 저장
+            System.out.println("공개키 저장 완료: " + fileName);
+            oos.close();
+        }catch (Exception e){
+            System.out.println("공개키 저장실패");
+        }
     }
 }
 
