@@ -40,8 +40,15 @@ secure_chat/
 │   │       └── com.chatproject.secure_chat/
 │   │           ├── server/
 │   │           │   └── ChatServer.java
-│   │           └── client/
-│   │               └── ChatClient.java
+│   │           │   └── CLientInfo.java
+│   │           │   └── ClientMessageReader.java
+│   │           ├── client/
+│   │           │    └── ChatClient.java
+│   │           │    └── MsgFormat.java
+│   │           │    └── SeverMessageReader.java
+│   │           ├── crypto
+│   │           │    └── AESUtil.java
+│   │           │    └── RSAUtil.java
 ├── README.md
 └── ...
 ```
