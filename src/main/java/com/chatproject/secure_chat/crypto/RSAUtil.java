@@ -125,6 +125,30 @@ public class RSAUtil {
             oos.close();
         }catch (Exception e){
             System.out.println("공개키 저장실패");
+            e.printStackTrace();
+        }
+    }
+
+    //저장된 공개키 불러오는 매서드
+    public static PublicKey loadPublickeyFromFile(String nickName){
+        try{
+            //공개키 저장된 파일 경로지정
+            File file = new File("PublicKey_File", nickName + ".pub");
+            if(!file.exists()){
+                System.out.println("파일이 존재하지 않습니다.");
+                return null;
+            }
+            FileInputStream fis = new FileInputStream(file);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            PublicKey publicKey = (PublicKey) ois.readObject();
+            ois.close();
+
+            System.out.println("공개키 복원 성공" + file.getPath());
+            return publicKey;
+        }catch (Exception e){
+            System.out.println("공개키 불러오기가 실패하였습니다.");
+            e.printStackTrace();
+            return null;
         }
     }
 }
