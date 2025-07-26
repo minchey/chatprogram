@@ -9,8 +9,8 @@
 - [x] 서버 연결 - Socket, SeverSocket
 - [x] 클라이언트 메시지 전송 BufferedReader, PrintWriter, InputStreamReader
 - [x] 서버 메시지 수신 및 출력 서버-클라이언트 양방향 완료
-- [ ] 암호화 적용
-- [ ] 다중 클라이언트 처리
+- [x] 암호화 적용
+- [x] 다중 클라이언트 처리
 - [ ] Docker 환경 구성
 
 ### ✅ 서버 (ChatServer.java)
