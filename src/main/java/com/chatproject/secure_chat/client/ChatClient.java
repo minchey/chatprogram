@@ -85,10 +85,9 @@ public class ChatClient {
                         RSAUtil.publicKeyToFile(finalNickName,publicKey);
                         System.out.println("회원가입 성공 닉네임: " + finalNickName);
 
-                        // ✅ 이 아래 추가 (로그인과 동일하게)
                         clientInfo = new ClientInfo(finalNickName, clientSocket, publicKey);
                         printwriter.println(clientInfo.getNickname());
-                        serverMessageReader = new ServerMessageReader(clientSocket, privateKey, printwriter);
+                        serverMessageReader = new ServerMessageReader(clientSocket, privateKey, printwriter,nickName);
                         Thread thread = new Thread(serverMessageReader);
                         thread.start();
                     } else {
@@ -112,7 +111,7 @@ public class ChatClient {
                         clientInfo = new ClientInfo(nickName, clientSocket, publicKey);
                         printwriter.println(clientInfo.getNickname());
                         // 서버 메시지를 수신할 스레드 실행
-                        serverMessageReader = new ServerMessageReader(clientSocket, privateKey, printwriter);
+                        serverMessageReader = new ServerMessageReader(clientSocket, privateKey, printwriter, nickName);
                         Thread thread = new Thread(serverMessageReader);
                         thread.start();
 

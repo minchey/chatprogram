@@ -21,11 +21,13 @@ public class ServerMessageReader implements Runnable {
     private PublicKey otherPublicKey; // 상대 공개키 저장용
     private PrivateKey privateKey;
     private PrintWriter printWriter;
+    private String nickName;
 
-    public ServerMessageReader(Socket socket, PrivateKey privateKey, PrintWriter printWriter) {
+    public ServerMessageReader(Socket socket, PrivateKey privateKey, PrintWriter printWriter, String nickName) {
         this.socket = socket;
         this.privateKey = privateKey;
         this.printWriter = printWriter;
+        this.nickName = nickName;
     }
 
     public PublicKey getOtherPublicKey() {
@@ -81,7 +83,7 @@ public class ServerMessageReader implements Runnable {
                             System.out.println("🔐 [" + requester + "] 님이 당신의 공개키를 요청했습니다.");
 
                             // 상대에게 내 공개키를 보냄
-                            PublicKey myPubKey = RSAUtil.getPublicKey(); // 이건 내 공개키
+                            PublicKey myPubKey = RSAUtil.loadPublickeyFromFile(nickName); // 이건 내 공개키
                             String encodedKey = Base64.getEncoder().encodeToString(myPubKey.getEncoded());
 
                             printWriter.println("KEY:" + encodedKey);
