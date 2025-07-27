@@ -25,6 +25,7 @@ import java.util.List;
 
 public class ChatClient {
     public static void main(String[] args) {
+        ServerMessageReader serverMessageReader = null;
         Socket clientSocket = null;
         Gson gson = new Gson();
         File file = new File("USER_FILE");
@@ -84,7 +85,12 @@ public class ChatClient {
                         RSAUtil.publicKeyToFile(finalNickName,publicKey);
                         System.out.println("회원가입 성공 닉네임: " + finalNickName);
 
-                        return;
+                        // ✅ 이 아래 추가 (로그인과 동일하게)
+                        clientInfo = new ClientInfo(finalNickName, clientSocket, publicKey);
+                        printwriter.println(clientInfo.getNickname());
+                        serverMessageReader = new ServerMessageReader(clientSocket, privateKey, printwriter);
+                        Thread thread = new Thread(serverMessageReader);
+                        thread.start();
                     } else {
                         System.out.println("회원가입 실패");
                         return;
@@ -106,7 +112,7 @@ public class ChatClient {
                         clientInfo = new ClientInfo(nickName, clientSocket, publicKey);
                         printwriter.println(clientInfo.getNickname());
                         // 서버 메시지를 수신할 스레드 실행
-                        ServerMessageReader serverMessageReader = new ServerMessageReader(clientSocket, privateKey, printwriter);
+                        serverMessageReader = new ServerMessageReader(clientSocket, privateKey, printwriter);
                         Thread thread = new Thread(serverMessageReader);
                         thread.start();
 
