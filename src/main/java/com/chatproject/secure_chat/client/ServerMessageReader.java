@@ -7,6 +7,7 @@ import com.google.gson.Gson;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.PrivateKey;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -15,6 +16,7 @@ import java.net.Socket;
 import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.List;
 
 public class ServerMessageReader implements Runnable {
     private Socket socket;
@@ -22,6 +24,7 @@ public class ServerMessageReader implements Runnable {
     private PrivateKey privateKey;
     private PrintWriter printWriter;
     private String nickName;
+    public final List<MsgFormat> receivedMsg = new ArrayList<>();
 
     public ServerMessageReader(Socket socket, PrivateKey privateKey, PrintWriter printWriter, String nickName) {
         this.socket = socket;
@@ -61,6 +64,7 @@ public class ServerMessageReader implements Runnable {
                     System.out.println("📦 msgFormat.type = " + msgFormat.getType());
 
 
+
                     switch (msgFormat.getType()) {
                         case "message":
                             // 🔐 암호화된 AES 키 복호화
@@ -76,6 +80,14 @@ public class ServerMessageReader implements Runnable {
                             break;
                         case "targetList":
                             System.out.println(msgFormat.getMsg());
+                            break;
+                        case "history":
+                            MsgFormat decrypted = new MsgFormat();
+                            decrypted.setNickname(msgFormat.getNickname());
+                            decrypted.setMsg(msgFormat.getMsg());
+                            decrypted.setTargetList(List.of(nickName));
+                            decrypted.setType("history");
+                            receivedMsg.add(decrypted);
                             break;
                         case "pubkeyRequest":
                             // 공개키 요청을 받았을 때 처리 로직

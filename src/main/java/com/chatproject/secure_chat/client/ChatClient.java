@@ -195,7 +195,30 @@ public class ChatClient {
 
                                 //메시지 복호화
                                 String decryptedMsg = AESUtil.decrypt(msg.getMsg(), secretKeySpec);
-                                System.out.println("[" + msg.getNickname() + "] " + decryptedMsg);
+
+                                //복호화 한 메시지 리스트에 저장
+                                MsgFormat decrypted = new MsgFormat();
+                                decrypted.setNickname(msg.getNickname());//닉네임 가져오기
+                                decrypted.setMsg(decryptedMsg);// 메시지 넣기
+                                decrypted.setType("history"); //타입 설정
+                                decrypted.setTimestamp(msg.getTimestamp());
+                                decrypted.setTargetList(List.of(targetNickname)); //상대에게만 전송
+                                receivedMessaged.add(decrypted);
+                                receivedMessaged.sort((m1,m2) -> m1.getTimestamp().compareTo(m2.getTimestamp()));
+                                String jsonHistory = gson.toJson(decrypted);
+                                printwriter.println(jsonHistory);//상대에게 전송
+
+                                //상대가 복호화한 리스트 받아 기존 리스트랑 병합
+                                List<MsgFormat> allHistory = new ArrayList<>();
+                                allHistory.addAll(receivedMessaged);
+                                allHistory.addAll(serverMessageReader.receivedMsg);
+                                //리스트 정렬
+                                allHistory.sort((m1,m2)-> m1.getTimestamp().compareTo(m2.getTimestamp()));
+
+                                //출력
+                                for(MsgFormat m : allHistory){
+                                    System.out.println("[" + m.getTimestamp() + "] [" + m.getNickname() + "] [" + m.getMsg());
+                                }
                             } catch (Exception e) {
                                 System.out.println(" 복호화 실패한 로그: " + line);
                             }
