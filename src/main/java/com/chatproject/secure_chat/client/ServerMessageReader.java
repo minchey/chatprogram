@@ -87,7 +87,11 @@ public class ServerMessageReader implements Runnable {
                             decrypted.setMsg(msgFormat.getMsg());
                             decrypted.setTargetList(List.of(nickName));
                             decrypted.setType("history");
+                            decrypted.setTimestamp(msgFormat.getTimestamp());
                             receivedMsg.add(decrypted);
+                            //System.out.println("[" + decrypted.getTimestamp() + "] " + decrypted.getNickname() + ": " +
+                                 //   decrypted.getMsg());
+
                             break;
                         case "pubkeyRequest":
                             // 공개키 요청을 받았을 때 처리 로직

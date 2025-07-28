@@ -57,6 +57,11 @@ public class ClientMessageReader implements Runnable {
                             synchronized (ChatServer.clientList) {
                                 for (ClientInfo client : ChatServer.clientList) {
                                     if (client.getNickname().equals(targetNickname)) {
+                                        // 🔸 timestamp가 없을 때만 현재시간으로 대체
+                                        if (msg.getTimestamp() == null) {
+                                            msg.setTimestamp(LocalDateTime.now().toString());
+                                        }
+
                                         PrintWriter pw = client.getPw();
                                         pw.println(gson.toJson(msg)); // 복호화된 메시지 전달
                                         System.out.println("📤 복호화된 메시지를 " + targetNickname + " 에게 전송함");
@@ -65,6 +70,7 @@ public class ClientMessageReader implements Runnable {
                                 }
                             }
                         }
+
 
 
                         // 메시지 종료 검사
