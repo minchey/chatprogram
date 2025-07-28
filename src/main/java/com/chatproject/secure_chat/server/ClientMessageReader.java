@@ -37,6 +37,7 @@ public class ClientMessageReader implements Runnable {
                 String message = br.readLine();
                 System.out.println("📨 수신된 메시지(raw): " + message);
 
+
                 if (message.startsWith("{")) {
                     try {
                         MsgFormat msg = gson.fromJson(message, MsgFormat.class);
@@ -50,6 +51,21 @@ public class ClientMessageReader implements Runnable {
 
                             saveLog(sender, receiver, message);
                         }
+                        //복호화 메시지 상대에게 전달
+                        if ("history".equals(msg.getType())) {
+                            String targetNickname = msg.getTargetList().get(0); //전달 대상
+                            synchronized (ChatServer.clientList) {
+                                for (ClientInfo client : ChatServer.clientList) {
+                                    if (client.getNickname().equals(targetNickname)) {
+                                        PrintWriter pw = client.getPw();
+                                        pw.println(gson.toJson(msg)); // 복호화된 메시지 전달
+                                        System.out.println("📤 복호화된 메시지를 " + targetNickname + " 에게 전송함");
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
 
                         // 메시지 종료 검사
                         if ("종료".equals(msg.getMsg())) break;

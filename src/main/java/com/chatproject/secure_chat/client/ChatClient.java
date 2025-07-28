@@ -216,8 +216,9 @@ public class ChatClient {
                                 allHistory.sort((m1,m2)-> m1.getTimestamp().compareTo(m2.getTimestamp()));
 
                                 //출력
+                                System.out.println("이전 대화 기록: ");
                                 for(MsgFormat m : allHistory){
-                                    System.out.println("[" + m.getTimestamp() + "] [" + m.getNickname() + "] [" + m.getMsg());
+                                    System.out.println("[" + m.getTimestamp() + "] [" + m.getNickname() + "] [" + m.getMsg() + "]");
                                 }
                             } catch (Exception e) {
                                 System.out.println(" 복호화 실패한 로그: " + line);
