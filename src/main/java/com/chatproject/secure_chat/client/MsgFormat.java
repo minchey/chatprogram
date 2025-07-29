@@ -51,6 +51,10 @@ public class MsgFormat {
         return aesKey;
     }
 
+    public void setAesKey(String aesKey){
+        this.aesKey = aesKey;
+    }
+
     //타입 지정
     public String getType(){
         return type;

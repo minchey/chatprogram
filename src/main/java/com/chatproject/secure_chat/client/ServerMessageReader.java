@@ -89,8 +89,8 @@ public class ServerMessageReader implements Runnable {
                             decrypted.setType("history");
                             decrypted.setTimestamp(msgFormat.getTimestamp());
                             receivedMsg.add(decrypted);
-                            //System.out.println("[" + decrypted.getTimestamp() + "] " + decrypted.getNickname() + ": " +
-                                 //   decrypted.getMsg());
+                            System.out.println("[" + decrypted.getTimestamp() + "] " + decrypted.getNickname() + ": " +
+                                    decrypted.getMsg());
 
                             break;
                         case "pubkeyRequest":

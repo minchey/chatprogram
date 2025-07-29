@@ -9,6 +9,7 @@ import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.text.MessageFormat;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -30,6 +31,7 @@ public class ChatClient {
         Gson gson = new Gson();
         File file = new File("USER_FILE");
         ClientInfo clientInfo = null;
+        String encrypted = null;
 
         //RSA 키쌍 저장변 (블록 바깥에서 선언)
         PublicKey publicKey = null;
@@ -198,10 +200,17 @@ public class ChatClient {
 
                                 //복호화 한 메시지 리스트에 저장
                                 MsgFormat decrypted = new MsgFormat();
+                                decrypted.setAesKey(encrypted); // 반드시 추가해야 서버가 정상 처리
+
                                 decrypted.setNickname(msg.getNickname());//닉네임 가져오기
                                 decrypted.setMsg(decryptedMsg);// 메시지 넣기
                                 decrypted.setType("history"); //타입 설정
-                                decrypted.setTimestamp(msg.getTimestamp());
+                                if (msg.getTimestamp() == null) {
+                                    decrypted.setTimestamp(LocalDateTime.now().toString());
+                                } else {
+                                    decrypted.setTimestamp(msg.getTimestamp());
+                                }
+
                                 decrypted.setTargetList(List.of(targetNickname)); //상대에게만 전송
                                 receivedMessaged.add(decrypted);
                                 receivedMessaged.sort((m1,m2) -> m1.getTimestamp().compareTo(m2.getTimestamp()));
@@ -234,7 +243,7 @@ public class ChatClient {
                 }
 
                 //받은 공개키로 AES 키 암호화
-                String encrypted = RSAUtil.encrypt(aesKeyString, serverMessageReader.getOtherPublicKey());
+                encrypted = RSAUtil.encrypt(aesKeyString, serverMessageReader.getOtherPublicKey());
 
 
                 // 💬 메시지 입력 루프
