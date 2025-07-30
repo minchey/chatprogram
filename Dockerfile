@@ -1,14 +1,20 @@
-FROM openjdk:21-slim
+# 🔹 Java 21 JDK 슬림 이미지 사용
+FROM openjdk:21-jdk-slim
 
-# 1. 작업 디렉터리 설정
+# 🔹 Maven 설치
+RUN apt-get update && apt-get install -y maven
+
+# 🔹 작업 디렉토리 설정
 WORKDIR /app
 
-# 2. 프로젝트 전체 복사
+# 🔹 프로젝트 파일 복사
 COPY . .
 
-# 3. Maven 설치 및 빌드
-RUN apt-get update && apt-get install -y maven \
-  && mvn clean package -DskipTests
+# 🔹 종속성 미리 다운로드 (옵션)
+RUN mvn dependency:go-offline -B
 
-# 4. 실행
-CMD ["java", "-jar", "target/secure-chat-1.0.jar"]
+# 🔹 jar 파일 생성 (테스트 제외)
+RUN mvn clean package -DskipTests
+
+# 🔹 애플리케이션 실행 (jar 이름 자동으로 반영)
+CMD ["java", "-jar", "target/secure-chat-0.0.1-SNAPSHOT.jar"]
