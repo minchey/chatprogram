@@ -17,7 +17,7 @@ public class ChatServer {
     public static List<ClientInfo> clientList = Collections.synchronizedList(new ArrayList<>());
     public static Map<String, PublicKey> publicKeyMap = new HashMap<>();
 
-    public static void main(String[] args) {
+    public  void start() {
 
 
         try { //예외처리
