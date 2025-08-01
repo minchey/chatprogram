@@ -1,20 +1,20 @@
 package com.chatproject.secure_chat.db;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.Statement;
-import java.sql.PreparedStatement;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ChatLogDAO {
-    public Connection connect() throws Exception{ //connect 메서드 정의
+    public Connection connect() throws Exception { //connect 메서드 정의
         String url = "jdbc:sqlite:chatlog.db";
         return DriverManager.getConnection(url);
     }
-    public void insertMessage(String sender, String receiver, String message, String timeStamp){
+
+    public void insertMessage(String sender, String receiver, String message, String timeStamp) {
         String sql = "INSERT INTO messages(sender, receiver, message, timestamp) VALUES (?, ?, ?, ?)";
 
         // ✅ try-with-resources를 사용하여 자원 자동 종료
-        try( Connection conn = connect();
+        try (Connection conn = connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) { // SQL 준비
 
             // ✅ 하드코딩된 값 제거하고 매개변수 사용
@@ -26,10 +26,39 @@ public class ChatLogDAO {
             pstmt.executeUpdate(); // SQL 실행
             System.out.println("✅ 메시지 삽입 완료");
 
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
+    public List<ChatMessage> getMessageBetween(String user1, String user2) { //메시지 db에서 가져오는 로직
+        List<ChatMessage> messages = new ArrayList<>();
+        String sql = "SELECT sender, receiver, message, timestamp FROM messages" +
+                "WHERE (sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?) ORDER BY timestamp ASC";
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, user1);
+            pstmt.setString(2, user2);
+            pstmt.setString(3, user2);
+            pstmt.setString(4, user1);
+
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                String sender = rs.getString("sender");
+                String receiver = rs.getString("receiver");
+                String message = rs.getString("message");
+                String timestamp = rs.getString("timestamp");
+
+                messages.add(new ChatMessage(sender, receiver, message, timestamp));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("메시지를 가져오는데 실패했습니다.");
+        }
+        return messages;
+    }
+
     public static void main(String[] args) {
         String url = "jdbc:sqlite:chatlog.db";  // 현재 프로젝트 디렉토리에 chatlog.db 생성됨
         try (Connection conn = DriverManager.getConnection(url); //db에 연결

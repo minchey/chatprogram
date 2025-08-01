@@ -50,6 +50,9 @@ public class ClientMessageReader implements Runnable {
                             String receiver = msg.getTargetList().get(0); // 받는사람
                             String encryptedMsg = msg.getMsg(); // 암호문
                             String timestamp = msg.getTimestamp(); // 시간
+                            if (timestamp == null) {
+                                timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                            }
 
                             System.out.println(" 로그 저장 대상: sender=" + sender + ", receiver=" + receiver);
                             ChatLogDAO dao = new ChatLogDAO();
