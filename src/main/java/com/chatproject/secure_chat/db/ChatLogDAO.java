@@ -33,7 +33,7 @@ public class ChatLogDAO {
 
     public List<ChatMessage> getMessageBetween(String user1, String user2) { //메시지 db에서 가져오는 로직
         List<ChatMessage> messages = new ArrayList<>();
-        String sql = "SELECT sender, receiver, message, timestamp FROM messages" +
+        String sql = "SELECT sender, receiver, message, timestamp FROM messages " +
                 "WHERE (sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?) ORDER BY timestamp ASC";
         try (Connection conn = connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
