@@ -165,82 +165,15 @@ public class ChatClient {
                     Thread.sleep(100); // 잠깐 기다림
                 }
 
-                List<MsgFormat> receivedMessaged = new ArrayList<>(); //수신한 메시지 저장할 리스트
-                //이전 대화로그 불러오기
-                String myNickname = clientInfo.getNickname(); //현재 사용자 닉네임
+                // DB 기반으로 변경: 이전 메시지 요청
+                MsgFormat historyRequest = new MsgFormat();
+                historyRequest.setType("history");
+                historyRequest.setNickname(clientInfo.getNickname()); // 요청자
+                historyRequest.setTargetList(List.of(targetNickname)); // 대화 상대
 
-                String[] names = {myNickname, targetNickname}; //본인,상대 닉네임 배열
-                Arrays.sort(names); //파일명 일관성 위해 배열정렬
-                String fileName = names[0] + "&" + names[1] + ".log"; //파일이름 재구성해서 파일 찾기
+                printwriter.println(gson.toJson(historyRequest)); //서버에 전송
+                System.out.println("🗂 이전 대화기록 요청 전송 완료");
 
-                File logFile = new File("Message_Logs", fileName); //로그파일이 저장된 디렉토리 경로와 파일명 조합해서 File 객체 생성
-                if (logFile.exists()) { //해당 로그파일이 존재하는지 확인
-                    System.out.println("이전 대화기록:");
-                    BufferedReader logReader = new BufferedReader(new FileReader(logFile)); //파일을 한줄씩 읽기위한 BufferedReader
-                    String line;
-
-                    //파일을 끝까지 반복해서 한 줄씩 출력
-                    while ((line = logReader.readLine()) != null) {
-                        int jsonStart = line.indexOf("{");
-                        if (jsonStart != -1) { //{가 없으면 Json이 아님
-                            String jsonPart = line.substring(jsonStart); //Json 부분만 추출
-
-                            try {
-                                MsgFormat msg = gson.fromJson(jsonPart, MsgFormat.class);
-
-                                //AES키 복호화
-                                String decryptedAESKeyBase64 = RSAUtil.decrypt(msg.getAesKey(), privateKey);
-
-                                //Base64 디코딩해서 AES키 복원
-                                byte[] decodedKey = Base64.getDecoder().decode(decryptedAESKeyBase64);
-                                SecretKeySpec secretKeySpec = new SecretKeySpec(decodedKey, "AES");
-
-                                //메시지 복호화
-                                String decryptedMsg = AESUtil.decrypt(msg.getMsg(), secretKeySpec);
-
-                                //복호화 한 메시지 리스트에 저장
-                                MsgFormat decrypted = new MsgFormat();
-                                decrypted.setAesKey(encrypted); // 반드시 추가해야 서버가 정상 처리
-
-                                decrypted.setNickname(msg.getNickname());//닉네임 가져오기
-                                decrypted.setMsg(decryptedMsg);// 메시지 넣기
-                                decrypted.setType("history"); //타입 설정
-                                if (msg.getTimestamp() == null) {
-                                    decrypted.setTimestamp(LocalDateTime.now().toString());
-                                } else {
-                                    decrypted.setTimestamp(msg.getTimestamp());
-                                }
-
-                                decrypted.setTargetList(List.of(targetNickname)); //상대에게만 전송
-                                receivedMessaged.add(decrypted);
-                                receivedMessaged.sort((m1,m2) -> m1.getTimestamp().compareTo(m2.getTimestamp()));
-                                String jsonHistory = gson.toJson(decrypted);
-                                printwriter.println(jsonHistory);//상대에게 전송
-
-                                //상대가 복호화한 리스트 받아 기존 리스트랑 병합
-                                List<MsgFormat> allHistory = new ArrayList<>();
-                                allHistory.addAll(receivedMessaged);
-                                allHistory.addAll(serverMessageReader.receivedMsg);
-                                //리스트 정렬
-                                allHistory.sort((m1,m2)-> m1.getTimestamp().compareTo(m2.getTimestamp()));
-
-                                //출력
-                                System.out.println("이전 대화 기록: ");
-                                for(MsgFormat m : allHistory){
-                                    System.out.println("[" + m.getTimestamp() + "] [" + m.getNickname() + "] [" + m.getMsg() + "]");
-                                }
-                            } catch (Exception e) {
-                                System.out.println(" 복호화 실패한 로그: " + line);
-                            }
-
-                        }
-                    }
-
-                    //자원정리
-                    logReader.close();
-                } else {
-                    System.out.println("이전 대화 기록 없음");
-                }
 
                 //받은 공개키로 AES 키 암호화
                 encrypted = RSAUtil.encrypt(aesKeyString, serverMessageReader.getOtherPublicKey());

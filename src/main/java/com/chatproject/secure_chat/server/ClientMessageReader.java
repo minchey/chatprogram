@@ -3,6 +3,7 @@ package com.chatproject.secure_chat.server; //서버스레드
 import com.chatproject.secure_chat.client.MsgFormat;
 import com.chatproject.secure_chat.db.ChatLogDAO;
 
+import com.chatproject.secure_chat.db.ChatMessage;
 import com.google.gson.Gson;
 
 import java.io.*;
@@ -12,6 +13,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Base64;
 import java.net.Socket;
+import java.util.List;
 
 public class ClientMessageReader implements Runnable {
 
@@ -24,6 +26,7 @@ public class ClientMessageReader implements Runnable {
         this.nickName = nickName;
         this.pubKey = pubKey;
     }
+
     Gson gson = new Gson();
 
     @Override
@@ -37,6 +40,10 @@ public class ClientMessageReader implements Runnable {
 
             while (true) {
                 String message = br.readLine();
+                if (message == null) {
+                    System.out.println("🔌 연결 종료됨. 스레드 종료.");
+                    break; // 루프 빠져나오기
+                }
                 System.out.println("📨 수신된 메시지(raw): " + message);
 
 
@@ -45,7 +52,7 @@ public class ClientMessageReader implements Runnable {
                         MsgFormat msg = gson.fromJson(message, MsgFormat.class);
 
                         //로그 저장
-                        if("message".equals(msg.getType())) {
+                        if ("message".equals(msg.getType())) {
                             String sender = msg.getNickname(); // 보낸사람
                             String receiver = msg.getTargetList().get(0); // 받는사람
                             String encryptedMsg = msg.getMsg(); // 암호문
@@ -62,23 +69,28 @@ public class ClientMessageReader implements Runnable {
                         //복호화 메시지 상대에게 전달
                         if ("history".equals(msg.getType())) {
                             String targetNickname = msg.getTargetList().get(0); //전달 대상
-                            synchronized (ChatServer.clientList) {
-                                for (ClientInfo client : ChatServer.clientList) {
-                                    if (client.getNickname().equals(targetNickname)) {
-                                        // 🔸 timestamp가 없을 때만 현재시간으로 대체
-                                        if (msg.getTimestamp() == null) {
-                                            msg.setTimestamp(LocalDateTime.now().toString());
-                                        }
+                            String requester = msg.getNickname();
+                            ChatLogDAO dao = new ChatLogDAO();
+                            List<ChatMessage> historyList = dao.getMessageBetween(requester, targetNickname);
+                            for (ChatMessage historyMsg : historyList) {
+                                MsgFormat response = new MsgFormat();
+                                response.setType("history");
+                                response.setNickname(historyMsg.getSender());
+                                response.setTargetList(List.of(historyMsg.getReceiver()));
+                                response.setMsg(historyMsg.getMessage());
+                                response.setTimestamp(historyMsg.getTimestamp());
 
-                                        PrintWriter pw = client.getPw();
-                                        pw.println(gson.toJson(msg)); // 복호화된 메시지 전달
-                                        System.out.println("📤 복호화된 메시지를 " + targetNickname + " 에게 전송함");
-                                        break;
+                                synchronized (ChatServer.clientList) {
+                                    for (ClientInfo client : ChatServer.clientList) {
+                                        if (client.getNickname().equals(requester)) {
+                                            client.getPw().println(gson.toJson(response));
+                                            break;
+                                        }
                                     }
                                 }
                             }
+                            continue;
                         }
-
 
 
                         // 메시지 종료 검사
@@ -116,12 +128,12 @@ public class ClientMessageReader implements Runnable {
                         }
 
                         //list 응답 전송
-                        if("targetListRequest".equals(msg.getType())){
+                        if ("targetListRequest".equals(msg.getType())) {
                             StringBuilder sb = new StringBuilder();
                             sb.append("현재 접속자 목록: \n");
 
-                            synchronized (ChatServer.clientList){
-                                for(ClientInfo client : ChatServer.clientList){
+                            synchronized (ChatServer.clientList) {
+                                for (ClientInfo client : ChatServer.clientList) {
                                     sb.append("- ").append(client.getNickname()).append("\n");
                                 }
                             }
@@ -150,9 +162,7 @@ public class ClientMessageReader implements Runnable {
                         System.out.println("❌ JSON 파싱 실패: " + message);
                         e.printStackTrace();
                     }
-                }
-
-                else {
+                } else {
                     System.out.println("서버로부터 수신된 일반 메시지: " + message);
                 }
 
