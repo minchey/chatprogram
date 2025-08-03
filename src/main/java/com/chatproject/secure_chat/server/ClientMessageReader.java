@@ -67,6 +67,7 @@ public class ClientMessageReader implements Runnable {
 
                         }
                         //복호화 메시지 상대에게 전달
+                        System.out.println("📥 받은 메시지 타입: " + msg.getType());
                         if ("history".equals(msg.getType())) {
                             String targetNickname = msg.getTargetList().get(0); //전달 대상
                             String requester = msg.getNickname();

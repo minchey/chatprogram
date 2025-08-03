@@ -172,6 +172,7 @@ public class ChatClient {
                 historyRequest.setTargetList(List.of(targetNickname)); // 대화 상대
 
                 printwriter.println(gson.toJson(historyRequest)); //서버에 전송
+                printwriter.flush();
                 System.out.println("🗂 이전 대화기록 요청 전송 완료");
 
 

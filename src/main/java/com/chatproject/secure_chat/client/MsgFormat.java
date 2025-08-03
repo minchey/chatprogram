@@ -20,7 +20,6 @@ public class MsgFormat {
         this.msg = msg;
         this.timestamp = LocalDateTime.now().toString();
         this.aesKey = aesKey;
-
     }
 
 

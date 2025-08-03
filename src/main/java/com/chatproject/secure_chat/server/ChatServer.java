@@ -40,8 +40,14 @@ public class ChatServer {
                 //공개키 HashMap에 저장
                 publicKeyMap.put(nickname, publicKey);
 
+                // 기존 nickname으로 등록된 소켓 제거
+                synchronized (clientList) {
+                    clientList.removeIf(client -> client.getNickname().equals(nickname));
+                }
+
                 ClientInfo clientInfo = new ClientInfo(nickname, clientSocket, publicKey);
                 clientList.add(clientInfo);
+
                 System.out.println(nickname + "님 연결됨");
                 System.out.println(publicKey);
 
