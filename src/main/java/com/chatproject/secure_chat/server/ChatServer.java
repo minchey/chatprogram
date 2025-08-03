@@ -45,7 +45,7 @@ public class ChatServer {
                     clientList.removeIf(client -> client.getNickname().equals(nickname));
                 }
 
-                ClientInfo clientInfo = new ClientInfo(nickname, clientSocket, publicKey);
+                ClientInfo clientInfo = new ClientInfo(nickname, clientSocket, publicKey); //접속할때마다 소켓 초기화
                 clientList.add(clientInfo);
 
                 System.out.println(nickname + "님 연결됨");
