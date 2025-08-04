@@ -24,6 +24,8 @@ public class ServerMessageReader implements Runnable {
     private PrivateKey privateKey;
     private PrintWriter printWriter;
     private String nickName;
+
+
     public final List<MsgFormat> receivedMsg = new ArrayList<>();
 
     public ServerMessageReader(Socket socket, PrivateKey privateKey, PrintWriter printWriter, String nickName) {
@@ -35,6 +37,10 @@ public class ServerMessageReader implements Runnable {
 
     public PublicKey getOtherPublicKey() {
         return otherPublicKey;
+    }
+
+    public void setOtherPublicKey(PublicKey otherPublicKey) {
+        this.otherPublicKey = otherPublicKey;
     }
 
     @Override
@@ -57,6 +63,7 @@ public class ServerMessageReader implements Runnable {
                     KeyFactory keyFactory = KeyFactory.getInstance("RSA");
                     this.otherPublicKey = keyFactory.generatePublic(spec);
                     System.out.println("📩 공개키 수신 완료.");
+                    this.setOtherPublicKey(otherPublicKey);
                 } else if (message.startsWith("ERROR:")) {
                     System.out.println("❌ 오류: " + message.substring(6));
                 } else if (message.startsWith("{")) {
