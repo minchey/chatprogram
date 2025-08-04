@@ -162,6 +162,7 @@ public class ChatClient {
 
                 // otherPublicKey 받아올 때까지 대기
                 while (serverMessageReader.getOtherPublicKey() == null) {
+                    System.out.println(".");
                     Thread.sleep(100); // 잠깐 기다림
                 }
 

@@ -61,9 +61,11 @@ public class ServerMessageReader implements Runnable {
                     byte[] keyBytes = Base64.getDecoder().decode(keyString);
                     X509EncodedKeySpec spec = new X509EncodedKeySpec(keyBytes);
                     KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-                    this.otherPublicKey = keyFactory.generatePublic(spec);
+//                    this.otherPublicKey = keyFactory.generatePublic(spec);
+//                    this.setOtherPublicKey(otherPublicKey);
+                    PublicKey receivedKey = keyFactory.generatePublic(spec); // 🔹 new 변수로 받기
+                    this.setOtherPublicKey(receivedKey);
                     System.out.println("📩 공개키 수신 완료.");
-                    this.setOtherPublicKey(otherPublicKey);
                 } else if (message.startsWith("ERROR:")) {
                     System.out.println("❌ 오류: " + message.substring(6));
                 } else if (message.startsWith("{")) {
@@ -110,6 +112,7 @@ public class ServerMessageReader implements Runnable {
                             String encodedKey = Base64.getEncoder().encodeToString(myPubKey.getEncoded());
 
                             printWriter.println("KEY:" + encodedKey);
+                            printWriter.flush();
                             break;
                         default:
                             System.out.println("📨 시스템 메시지: " + msgFormat.getMsg());
