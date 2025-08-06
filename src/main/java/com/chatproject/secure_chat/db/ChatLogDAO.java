@@ -4,13 +4,27 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 메시지 저장/조회 DAO
+ * - SQLite 파일: chatlog.db
+ * - 스키마(IV 없음):
+ *   sender, receiver, ciphertext, aes_key_for_receiver, aes_key_for_sender, timestamp
+ */
 public class ChatLogDAO {
     public Connection connect() throws Exception {
         String url = "jdbc:sqlite:chatlog.db";
         return DriverManager.getConnection(url);
     }
 
-    // ★ 암호문 + 두 종류의 aesKey 저장(IV 없음)
+    /**
+     * 메시지 1건 저장
+     * @param sender   보낸 사람
+     * @param receiver 받는 사람
+     * @param ciphertext AES 암호문(Base64)
+     * @param aesKeyForReceiver 수신자용 RSA 암호문 키(Base64)
+     * @param aesKeyForSender  발신자용 RSA 암호문 키(Base64) — 없으면 null 허용(그 경우 송신자는 복호화 불가)
+     * @param timeStamp 타임스탬프(문자열)
+     */
     public void insertMessage(String sender, String receiver,
                               String ciphertext,
                               String aesKeyForReceiver,
@@ -26,7 +40,7 @@ public class ChatLogDAO {
             pstmt.setString(2, receiver);
             pstmt.setString(3, ciphertext);
             pstmt.setString(4, aesKeyForReceiver);
-            pstmt.setString(5, aesKeyForSender);
+            pstmt.setString(5, aesKeyForSender);      // null 가능
             pstmt.setString(6, timeStamp);
 
             pstmt.executeUpdate();
@@ -36,7 +50,9 @@ public class ChatLogDAO {
         }
     }
 
-    // 요청자/상대 간 모든 메시지 반환 (암호문 + 두 키 포함)
+    /**
+     * 두 사용자 간의 모든 메시지(오래된 순) 조회
+     */
     public List<ChatMessage> getMessageBetween(String user1, String user2) {
         List<ChatMessage> messages = new ArrayList<>();
         String sql =
@@ -47,6 +63,7 @@ public class ChatLogDAO {
 
         try (Connection conn = connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
             pstmt.setString(1, user1);
             pstmt.setString(2, user2);
             pstmt.setString(3, user2);
@@ -70,23 +87,26 @@ public class ChatLogDAO {
         return messages;
     }
 
+    /**
+     * 최초 실행 시 테이블 생성 (이미 있으면 그대로 둠)
+     */
     public static void main(String[] args) {
         String url = "jdbc:sqlite:chatlog.db";
         try (Connection conn = DriverManager.getConnection(url);
              Statement stmt = conn.createStatement()) {
 
-            // ★ 신규 생성 시의 스키마(IV 없음)
             String sql = "CREATE TABLE IF NOT EXISTS messages (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                     "sender TEXT NOT NULL," +
                     "receiver TEXT NOT NULL," +
-                    "ciphertext TEXT NOT NULL," +               // Base64 AES 암호문
+                    "ciphertext TEXT NOT NULL," +               // AES 암호문(Base64)
                     "aes_key_for_receiver TEXT NOT NULL," +     // 수신자용 RSA 암호문 키
-                    "aes_key_for_sender  TEXT NOT NULL," +      // 발신자용 RSA 암호문 키
+                    "aes_key_for_sender  TEXT," +               // 발신자용 RSA 암호문 키(없을 수도 있음)
                     "timestamp TEXT NOT NULL" +
                     ");";
             stmt.execute(sql);
             System.out.println("✅ 테이블 생성/확인 완료");
+
         } catch (Exception e) {
             e.printStackTrace();
         }
