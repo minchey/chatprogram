@@ -36,7 +36,7 @@ public class RSAUtil {
     }
 
     /**
-     * 🔓 암호문을 RSA 개인키로 복호화
+     * 암호문을 RSA 개인키로 복호화
      *
      * @param encryptedText Base64 인코딩된 암호문
      * @param privateKey    복호화에 사용할 개인키

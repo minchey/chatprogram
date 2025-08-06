@@ -31,6 +31,7 @@ public class ChatClient {
         try {
             System.out.println("서버에 연결합니다");
             clientSocket = new Socket("127.0.0.1", 9999); // 서버 연결
+            System.out.println(clientSocket);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -78,6 +79,7 @@ public class ChatClient {
 
                         clientInfo = new ClientInfo(finalNickName, clientSocket, publicKey);
 
+
                         // 수신 스레드 실행
                         serverMessageReader = new ServerMessageReader(clientSocket, privateKey, printwriter, finalNickName);
                         Thread thread = new Thread(serverMessageReader);
@@ -104,6 +106,7 @@ public class ChatClient {
                             return;
                         }
                         clientInfo = new ClientInfo(nickName, clientSocket, publicKey);
+                        System.out.println(clientInfo.getSocket());
 
                         // 수신 스레드 실행
                         serverMessageReader = new ServerMessageReader(clientSocket, privateKey, printwriter, nickName);
@@ -132,6 +135,7 @@ public class ChatClient {
                 String targetNickname = null;
                 while (targetNickname == null || targetNickname.isBlank()) {
                     System.out.println("'LIST'를 입력하면 현재 접속자 목록을 볼 수 있습니다.");
+                    System.out.println("대화 상대를 입력해주세요: ");
                     String input = br.readLine();
 
                     if (input.equalsIgnoreCase("LIST")) {
