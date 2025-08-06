@@ -63,7 +63,7 @@ public class ClientMessageReader implements Runnable {
 
                             System.out.println(" 로그 저장 대상: sender=" + sender + ", receiver=" + receiver);
                             ChatLogDAO dao = new ChatLogDAO();
-                            dao.insertMessage(sender, receiver, encryptedMsg, timestamp);
+                            dao.insertMessage(sender, receiver, encryptedMsg, aesKeyForReceiver, aesKeyForSender, timeStamp);
 
                         }
                         //복호화 메시지 상대에게 전달
