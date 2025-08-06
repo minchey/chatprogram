@@ -73,7 +73,6 @@ public class ServerMessageReader implements Runnable {
                     System.out.println("📦 msgFormat.type = " + msgFormat.getType());
 
 
-
                     switch (msgFormat.getType()) {
                         case "message":
                             // 🔐 암호화된 AES 키 복호화
@@ -90,18 +89,70 @@ public class ServerMessageReader implements Runnable {
                         case "targetList":
                             System.out.println(msgFormat.getMsg());
                             break;
-                        case "history":
-                            MsgFormat decrypted = new MsgFormat();
-                            decrypted.setNickname(msgFormat.getNickname());
-                            decrypted.setMsg(msgFormat.getMsg());
-                            decrypted.setTargetList(List.of(nickName));
-                            decrypted.setType("history");
-                            decrypted.setTimestamp(msgFormat.getTimestamp());
-                            receivedMsg.add(decrypted);
-                            System.out.println("[" + decrypted.getTimestamp() + "] " + decrypted.getNickname() + ": " +
-                                    decrypted.getMsg());
+                        case "history": {
+                            try {
+                                // ── 0) 필드 점검 ───────────────────────────────────────────
+                                String from = msgFormat.getNickname();
+                                String encAesKey = msgFormat.getAesKey();   // ★ 문제의 주인공
+                                String cipher = msgFormat.getMsg();
 
+                                if (encAesKey == null || encAesKey.isBlank()) {
+                                    boolean sentByMe = nickName.equals(from);
+                                    String note = sentByMe
+                                            ? "내가 보낸 메시지(요청자용 AES 키 없음) → 내가 복호화 불가"
+                                            : "상대가 보낸 메시지(aesKey 누락) → 서버 응답/필드매핑 점검 필요";
+
+                                    System.out.println(
+                                            "⚠️ history aesKey 없음 | ts=" + msgFormat.getTimestamp()
+                                                    + " | from=" + from
+                                                    + " | sentByMe=" + sentByMe
+                                                    + " | cipherLen=" + (cipher == null ? "null" : cipher.length())
+                                    );
+
+                                    // 일단 사용자 화면에 안내만 남기고 스킵하거나 placeholder 저장
+                                    MsgFormat placeholder = new MsgFormat();
+                                    placeholder.setNickname(from);
+                                    placeholder.setMsg("[" + note + "]");
+                                    placeholder.setTargetList(List.of(nickName));
+                                    placeholder.setType("history");
+                                    placeholder.setTimestamp(msgFormat.getTimestamp());
+                                    receivedMsg.add(placeholder);
+                                    break; // 복호화 시도하지 않고 다음 항목으로
+                                }
+
+                                // ── 1) RSA로 AES 키 복호화 ─────────────────────────────────
+                                String aesKeyBase64 = RSAUtil.decrypt(encAesKey, privateKey);
+                                if (aesKeyBase64 == null || aesKeyBase64.isBlank()) {
+                                    throw new IllegalStateException("RSA 복호화 결과(aesKeyBase64)가 비어있음");
+                                }
+
+                                // ── 2) AES 키 복원 ────────────────────────────────────────
+                                byte[] keyBytes = Base64.getDecoder().decode(aesKeyBase64);
+                                SecretKeySpec secretKey2 = new SecretKeySpec(keyBytes, 0, keyBytes.length, "AES");
+
+                                // ── 3) AES 복호화 (IV 없는 규약 가정) ─────────────────────
+                                String plainText = AESUtil.decrypt(cipher, secretKey2);
+
+                                // ── 4) 저장/출력 ─────────────────────────────────────────
+                                MsgFormat decrypted = new MsgFormat();
+                                decrypted.setNickname(from);
+                                decrypted.setMsg(plainText);
+                                decrypted.setTargetList(List.of(nickName));
+                                decrypted.setType("history");
+                                decrypted.setTimestamp(msgFormat.getTimestamp());
+
+                                receivedMsg.add(decrypted);
+                                System.out.println("[" + decrypted.getTimestamp() + "] " + decrypted.getNickname() + ": " + decrypted.getMsg());
+                            } catch (Exception e) {
+                                System.out.println("❌ history 복호화 실패: ts=" + msgFormat.getTimestamp()
+                                        + ", from=" + msgFormat.getNickname()
+                                        + ", aesKeyLen=" + (msgFormat.getAesKey() == null ? "null" : msgFormat.getAesKey().length()));
+                                e.printStackTrace();
+                            }
                             break;
+                        }
+
+
                         case "pubkeyRequest":
                             // 공개키 요청을 받았을 때 처리 로직
                             String requester = msgFormat.getNickname(); // 요청자 닉네임

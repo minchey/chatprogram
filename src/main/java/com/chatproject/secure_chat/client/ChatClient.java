@@ -31,7 +31,7 @@ public class ChatClient {
         try {
             System.out.println("서버에 연결합니다");
             clientSocket = new Socket("127.0.0.1", 9999); // 서버 연결
-            System.out.println(clientSocket);
+            //System.out.println(clientSocket);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -106,7 +106,7 @@ public class ChatClient {
                             return;
                         }
                         clientInfo = new ClientInfo(nickName, clientSocket, publicKey);
-                        System.out.println(clientInfo.getSocket());
+                        //System.out.println(clientInfo.getSocket());
 
                         // 수신 스레드 실행
                         serverMessageReader = new ServerMessageReader(clientSocket, privateKey, printwriter, nickName);
