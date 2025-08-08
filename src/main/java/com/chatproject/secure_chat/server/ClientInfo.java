@@ -14,7 +14,7 @@ public class ClientInfo {
     private boolean isValid = true;
     private PrintWriter pw;
 
-    public ClientInfo(String nickname, Socket socket, PublicKey publicKey) {
+    public ClientInfo(String nickname, Socket socket, PublicKey publicKey) { //생성자
         this.nickname = nickname;
         this.socket = socket;
         this.publicKey = publicKey;
