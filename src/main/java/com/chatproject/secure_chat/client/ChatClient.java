@@ -25,11 +25,11 @@ public class ChatClient {
         ClientInfo clientInfo = null;
         String encrypted = null;
 
-        PublicKey publicKey = null;
-        PrivateKey privateKey = null;
+        PublicKey publicKey = null; //공개키 초기와
+        PrivateKey privateKey = null; //개인키 초기화
 
         try {
-            System.out.println("서버에 연결합니다");
+            System.out.println("서버에 연결합니다"); //서버연결 로그
             clientSocket = new Socket("127.0.0.1", 9999); // 서버 연결
             //System.out.println(clientSocket);
         } catch (Exception e) {
