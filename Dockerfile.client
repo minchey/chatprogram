@@ -1,11 +1,13 @@
-# Dockerfile.client
-FROM openjdk:21-jdk
+FROM openjdk:21-jdk-slim
 
-# 컨테이너 안에 작업 디렉토리 설정
+# Maven 설치
+RUN apt-get update && apt-get install -y maven && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
+COPY . .
 
-# 프로젝트 JAR 복사 (Maven/Gradle 빌드 후 target/*.jar 위치)
-COPY target/secure-chat-1.0-SNAPSHOT.jar app.jar
+# 의존성 선캐시(빠른 재빌드용, 선택)
+RUN mvn -q -DskipTests dependency:go-offline
 
-# 클라이언트 실행 명령
-ENTRYPOINT ["java", "-cp", "app.jar", "com.chatproject.secure_chat.client.ChatClient"]
+# 실행: Maven exec로 메인 실행 (클래스패스 자동 해결)
+CMD ["mvn","-q","-DskipTests","-Dexec.mainClass=com.chatproject.secure_chat.client.ChatClient","exec:java"]
