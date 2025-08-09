@@ -1,0 +1,11 @@
+# Dockerfile.client
+FROM openjdk:21-jdk
+
+# 컨테이너 안에 작업 디렉토리 설정
+WORKDIR /app
+
+# 프로젝트 JAR 복사 (Maven/Gradle 빌드 후 target/*.jar 위치)
+COPY target/secure-chat-1.0-SNAPSHOT.jar app.jar
+
+# 클라이언트 실행 명령
+ENTRYPOINT ["java", "-cp", "app.jar", "com.chatproject.secure_chat.client.ChatClient"]
