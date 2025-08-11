@@ -5,61 +5,128 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.ServerSocket;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
-import com.chatproject.secure_chat.client.ChatClient;
-import com.chatproject.secure_chat.server.ClientInfo;
+import java.util.Base64;
 
+/**
+ * ChatServer
+ *
+ * <역할>
+ * - 클라이언트 연결을 받아 닉네임/공개키 등록
+ * - 전역 상태로 접속자 목록(clientList)과 공개키 맵(publicKeyMap) 유지
+ * - 각 연결에 대해 ClientMessageReader 스레드 실행
+ *
+ * <프로토콜(초기 핸드셰이크)>
+ * 1) 클라이언트가 첫 두 줄로 전송:
+ *    - 1줄: nickname
+ *    - 2줄: Base64(X.509) 공개키
+ *
+ * <운영 팁>
+ * - 포트는 환경변수 SERVER_PORT로 바꿀 수 있음(기본 9999)
+ * - 동일 닉네임 재접속 시 기존 연결을 정리 후 덮어씀(중복 세션 방지)
+ */
 public class ChatServer {
-    public static List<ClientInfo> clientList = Collections.synchronizedList(new ArrayList<>());
-    public static Map<String, PublicKey> publicKeyMap = new HashMap<>();
 
-    public  void start() {
+    /** 접속자 리스트(순회 시 동기화 필요) */
+    public static final List<ClientInfo> clientList = Collections.synchronizedList(new ArrayList<>());
 
+    /** 닉네임→공개키 매핑(조회/갱신 동시 안전성) */
+    public static final Map<String, PublicKey> publicKeyMap = new ConcurrentHashMap<>();
 
-        try { //예외처리
-            ServerSocket serverSocket = new ServerSocket(9999); //포트번호 9999로 서버 오픈
-            System.out.println("서버실행 연결대기중...");
+    public void start() {
+        final int PORT = Integer.parseInt(System.getenv().getOrDefault("SERVER_PORT", "9999"));
+
+        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
+            System.out.println("[SERVER] listen on port " + PORT + " ...");
 
             while (true) {
-                Socket clientSocket = serverSocket.accept();//클라이언트 연결
-                BufferedReader br = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                PrintWriter pw = new PrintWriter(clientSocket.getOutputStream(), true);
-                String nickname = br.readLine(); //닉네임 받기
-                String base64Key = br.readLine(); //공개키 받기
+                // 1) 새 연결 수락
+                Socket clientSocket = serverSocket.accept();
+                System.out.println("[SERVER] incoming connection from " + clientSocket.getRemoteSocketAddress());
 
-                //Base64 -> Bytes -> PublicKey 복원
-                byte[] keyBytes = Base64.getDecoder().decode(base64Key); //기존 2진 데이터 코드로 전환
-                X509EncodedKeySpec spec = new X509EncodedKeySpec(keyBytes); //x.509 형식으로 인코딩  공개키 감싸는 클래스
-                KeyFactory keyFactory = KeyFactory.getInstance("RSA"); //RSA만 다루는 공장생성
-                PublicKey publicKey = keyFactory.generatePublic(spec); //공개키 포맷을 진짜 public키로 전환
+                try {
+                    // 2) 초기 핸드셰이크: nickname, base64 public key (UTF-8 고정)
+                    BufferedReader br = new BufferedReader(
+                            new InputStreamReader(clientSocket.getInputStream(), StandardCharsets.UTF_8));
+                    PrintWriter pw = new PrintWriter(clientSocket.getOutputStream(), true, StandardCharsets.UTF_8);
 
-                //공개키 HashMap에 저장
-                publicKeyMap.put(nickname, publicKey);
+                    String nickname = br.readLine();
+                    String base64Key = br.readLine();
 
-                // 기존 nickname으로 등록된 소켓 제거
-                synchronized (clientList) {
-                    clientList.removeIf(client -> client.getNickname().equals(nickname));
+                    if (nickname == null || nickname.isBlank() || base64Key == null || base64Key.isBlank()) {
+                        System.out.println("[SERVER] ⛔ invalid handshake: nickname/base64Key is null/blank. Closing.");
+                        safeClose(clientSocket);
+                        continue;
+                    }
+
+                    // 3) Base64 → X509 → PublicKey 복원
+                    PublicKey publicKey;
+                    try {
+                        byte[] keyBytes = Base64.getDecoder().decode(base64Key);
+                        X509EncodedKeySpec spec = new X509EncodedKeySpec(keyBytes);
+                        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+                        publicKey = keyFactory.generatePublic(spec);
+                    } catch (Exception e) {
+                        System.out.println("[SERVER] ⛔ public key parse failed for user=" + nickname + ": " + e.getMessage());
+                        safeClose(clientSocket);
+                        continue;
+                    }
+
+                    // 4) 동일 닉네임 기존 연결 제거(있다면 소켓/Writer 닫기 포함)
+                    removeIfExists(nickname);
+
+                    // 5) 상태 등록
+                    publicKeyMap.put(nickname, publicKey);
+                    ClientInfo clientInfo = new ClientInfo(nickname, clientSocket, publicKey); // (ClientInfo가 pw를 내부에서 생성/보관한다고 가정)
+                    clientList.add(clientInfo);
+
+                    System.out.println("[SERVER] ✅ " + nickname + " connected");
+                    System.out.println("[SERVER]    pubkey=" + publicKey);
+
+                    // 6) per-connection reader 스레드 기동
+                    Thread thread = new Thread(new ClientMessageReader(clientSocket, nickname, publicKey));
+                    thread.setName("ClientMessageReader-" + nickname);
+                    thread.start();
+
+                } catch (Exception e) {
+                    System.out.println("[SERVER] ⛔ handshake/accept block error: " + e.getMessage());
+                    // clientSocket은 finally에서 닫지 않음(정상 스레드가 이어받을 수 있음). 여기선 즉시 닫아도 무방.
+                    safeClose(clientSocket);
                 }
-
-                ClientInfo clientInfo = new ClientInfo(nickname, clientSocket, publicKey); //접속할때마다 소켓 초기화
-                clientList.add(clientInfo);
-
-                System.out.println(nickname + "님 연결됨");
-                System.out.println(publicKey);
-
-
-                Thread thread = new Thread(new ClientMessageReader(clientSocket, nickname, publicKey));
-                thread.start();
             }
 
-            //serverSocket.close(); //서버 종료
-        } catch (Exception e) { //예외처리
+        } catch (Exception e) {
+            System.out.println("[SERVER] ⛔ server loop error");
             e.printStackTrace();
         }
+    }
 
+    /**
+     * 같은 닉네임의 기존 연결이 있다면 리스트에서 제거하고 소켓을 안전하게 닫는다.
+     */
+    private void removeIfExists(String nickname) {
+        synchronized (clientList) {
+            Iterator<ClientInfo> it = clientList.iterator();
+            while (it.hasNext()) {
+                ClientInfo c = it.next();
+                if (nickname.equals(c.getNickname())) {
+                    System.out.println("[SERVER] ℹ️ duplicate login. closing old session of " + nickname);
+                    safeClose(c.getSocket());
+                    it.remove();
+                }
+            }
+        }
+    }
+
+    /** 소켓 안전 종료 */
+    private void safeClose(Socket s) {
+        if (s == null) return;
+        try { s.close(); } catch (Exception ignore) {}
     }
 }
