@@ -12,3 +12,20 @@ mvn -Dexec.mainClass=com.chatproject.secure_chat.client.ChatClient exec:java
 클라이언트2
 cd ~/Desktop/secure-chat
 mvn -Dexec.mainClass=com.chatproject.secure_chat.client.ChatClient exec:java
+
+
+docker로 실행 명령어
+
+# 3-1) 이미지 빌드
+docker compose build
+
+# 3-2) 서버만 먼저 백그라운드로 기동
+docker compose up -d chat-server
+
+# 3-3) 클라이언트 1 실행 (인터랙티브)
+docker compose run --rm client-1
+# (여기서 가입/로그인, LIST, 상대 닉네임 입력 등 진행)
+
+# 3-4) 새 터미널을 하나 더 열고, 클라이언트 2 실행
+docker compose run --rm client-2
+# (마찬가지로 가입/로그인, 상대 닉네임 입력)
