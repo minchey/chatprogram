@@ -1,0 +1,48 @@
+version: "3.9"
+
+services:
+  chat-server:
+    build: .
+    container_name: chat-server
+    environment:
+      MAIN: com.chatproject.secure_chat.server.ServerMain
+      SERVER_PORT: "9999"
+    ports:
+      - "9999:9999"
+    volumes:
+      - server_data:/app   # DB(chatlog.db)와 서버 로그 보존
+    tty: true
+    restart: unless-stopped
+
+  client-1:
+    build: .
+    container_name: client-1
+    environment:
+      MAIN: com.chatproject.secure_chat.client.ChatClient   # ClientMain 있으면 그걸로 교체 가능
+      SERVER_HOST: chat-server
+      SERVER_PORT: "9999"
+    stdin_open: true
+    tty: true
+    depends_on:
+      - chat-server
+    volumes:
+      - client1_data:/app  # 키 파일 보존(PrivateKey_File/PublicKey_File)
+
+  client-2:
+    build: .
+    container_name: client-2
+    environment:
+      MAIN: com.chatproject.secure_chat.client.ChatClient
+      SERVER_HOST: chat-server
+      SERVER_PORT: "9999"
+    stdin_open: true
+    tty: true
+    depends_on:
+      - chat-server
+    volumes:
+      - client2_data:/app
+
+volumes:
+  server_data:
+  client1_data:
+  client2_data:

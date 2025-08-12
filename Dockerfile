@@ -1,20 +1,24 @@
-#  Java 21 JDK 슬림 이미지 사용
+# ===== Build & Run in one image (JDK + Maven) =====
 FROM openjdk:21-jdk-slim
 
-#  Maven 설치
-RUN apt-get update && apt-get install -y maven
+# Maven 설치
+RUN apt-get update && apt-get install -y maven && rm -rf /var/lib/apt/lists/*
 
-#  작업 디렉토리 설정
 WORKDIR /app
 
-#  프로젝트 파일 복사
-COPY . .
+# 빌드 캐시 최적화: 먼저 POM만 복사해서 의존성 내려받기
+COPY pom.xml ./
+RUN mvn -q -DskipTests dependency:go-offline
 
-#  종속성 미리 다운로드 (옵션)
-RUN mvn dependency:go-offline -B
+# 소스 복사 후 빌드
+COPY src ./src
+RUN mvn -q -DskipTests package
 
-#  jar 파일 생성 (테스트 제외)
-RUN mvn clean package -DskipTests
+# 기본 실행할 메인 클래스 (서버). 컨테이너별로 MAIN env로 덮어씀
+ENV MAIN=com.chatproject.secure_chat.server.ServerMain
+# 서버/클라이언트 공통 환경변수 (클라이언트는 SERVER_HOST를 chat-server로 받음)
+ENV SERVER_HOST=127.0.0.1
+ENV SERVER_PORT=9999
 
-#  애플리케이션 실행 (jar 이름 자동으로 반영)
-CMD ["java", "-jar", "target/secure-chat-0.0.1-SNAPSHOT.jar"]
+# 실행: exec-maven-plugin으로 MAIN 실행 (클래스패스 자동 구성)
+CMD ["bash","-lc","mvn -q -DskipTests -Dexec.mainClass=${MAIN} exec:java"]
