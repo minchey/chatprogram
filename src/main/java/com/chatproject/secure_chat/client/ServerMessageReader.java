@@ -87,7 +87,7 @@ public class ServerMessageReader implements Runnable {
                         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
                         PublicKey receivedKey = keyFactory.generatePublic(spec);
                         this.setOtherPublicKey(receivedKey);
-                        System.out.println("📩 공개키 수신 완료.");
+                       // System.out.println("📩 공개키 수신 완료.");
                     } catch (Exception e) {
                         System.out.println("❌ 공개키 파싱 실패: " + e.getMessage());
                         e.printStackTrace();
@@ -202,7 +202,7 @@ public class ServerMessageReader implements Runnable {
                     }
 
                     if ("pubkeyRequest".equals(type)) {
-                        // (참고) 이 분기는 "다른 누군가가 내 키를 요청했다"는 서버 알림에 대응하는 용도
+                        // 이 분기는 "다른 누군가가 내 키를 요청했다"는 서버 알림에 대응하는 용도
                         String requester = msgFormat.getNickname();
                         System.out.println("🔐 [" + requester + "] 님이 당신의 공개키를 요청했습니다.");
 
