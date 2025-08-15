@@ -275,7 +275,7 @@ public class ChatClient {
 
                         printwriter.println(gson.toJson(msgFormat));
                         printwriter.flush();
-                        //System.out.println("✅ 전송 완료");
+                        System.out.println("✅ 전송 완료 tlqkffusdkmadskflmasdkflmasdfl");
                     } catch (Exception e) {
                         System.out.println("🔴 암호화/전송 실패!");
                         e.printStackTrace();

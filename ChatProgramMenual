@@ -1,6 +1,6 @@
 서버 실행
 cd ~/Desktop/secure-chat
-mvn -Dexec.mainClass=com.chatproject.secure_chat.server.ChatServer exec:java
+mvn -Dexec.mainClass=com.chatproject.secure_chat.server.ServerMain exec:java
 9999 포트에서 서버가 대기 시작함 → [SERVER] listen on port 9999 ... 뜨면 정상.
 
 
