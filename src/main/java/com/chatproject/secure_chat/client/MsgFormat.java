@@ -32,15 +32,7 @@ import java.util.List;
  * h.setNickname(myNick);                // 요청자
  * h.setTargetList(List.of(peerNick));   // 상대
  * h.setTimestampNow();
- *
- * ✅ 서버 → 클라이언트 (history 응답)
- * - msg : DB의 ciphertext(Base64)
- * - aesKey : 요청자 기준으로 고른 RSA 암호문 키(= aes_key_for_receiver or aes_key_for_sender)
- * - nickname/timestamp/targetList 등 부가 정보 포함
- *
- * ⚠️ 주의
- * - iv를 쓰지 않는 버전이라 AESUtil이 IV 없이 복호화되도록 구현되어 있어야 함.
- * - Gson을 사용하므로, 필드명이 서버/클라 양쪽에서 동일해야 한다.
+
  */
 public class MsgFormat {
 
