@@ -205,7 +205,7 @@ public class ChatClient {
 
                     targetNickname = input;
 
-                    // 상대 공개키 요청 (현재 프로토콜: msg 필드에 대상 닉네임)
+                    // 상대 공개키 요청
                     MsgFormat keyRequest = new MsgFormat();
                     keyRequest.setType("pubkeyRequest");
                     keyRequest.setNickname(clientInfo.getNickname());
@@ -214,7 +214,7 @@ public class ChatClient {
                     printwriter.flush();
                 }
 
-                // 상대 공개키 수신 대기 (최대 10초)
+                // 상대 공개키 수신 대기
                 long waitStart = System.currentTimeMillis();
                 while (serverMessageReader.getOtherPublicKey() == null) {
                     if (System.currentTimeMillis() - waitStart > 10_000) {
@@ -230,7 +230,7 @@ public class ChatClient {
                 }
 
                 // ─────────────────────────────────────────────────────────────
-                // 🗂 히스토리 요청 (요청자=나, 대상=targetNickname)
+                // 🗂 히스토리 요청
                 // ─────────────────────────────────────────────────────────────
                 MsgFormat historyRequest = new MsgFormat();
                 historyRequest.setType("history");
@@ -275,7 +275,7 @@ public class ChatClient {
 
                         printwriter.println(gson.toJson(msgFormat));
                         printwriter.flush();
-                        System.out.println("✅ 전송 완료 tlqkffusdkmadskflmasdkflmasdfl");
+                        System.out.println("✅ 전송 완료");
                     } catch (Exception e) {
                         System.out.println("🔴 암호화/전송 실패!");
                         e.printStackTrace();
